@@ -89,6 +89,7 @@ td input::placeholder{color:var(--muted);opacity:.75}
 td.empty{position:static;text-align:left;font-family:var(--body);color:var(--muted);padding:20px 12px;white-space:normal}
 td input.hi,td select.hi{border-color:var(--warn);color:var(--warn);font-weight:600}
 td select.dlsel{width:112px;font-family:var(--mono);font-weight:500}
+td select.lo{border-color:var(--accent);color:var(--accent);font-weight:600}
 td.be{font-weight:600;color:var(--accent);font-size:1rem}
 td.out{color:var(--straw);font-weight:600}
 td.pos{color:var(--good)} td.neg{color:var(--bad)}
@@ -197,7 +198,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
       <div class="field"><label for="vet">Vet &amp; processing</label><div class="in"><span>$</span><input id="vet" type="number" step="1" value="25"><span>/hd</span></div></div>
       <div class="field"><label for="sell">Selling &amp; freight out</label><div class="in"><span>$</span><input id="sell" type="number" step="1" value="35"><span>/hd</span></div></div>
       <div class="field"><label for="interest">Interest rate</label><div class="in"><input id="interest" type="number" step="0.25" value="8.0"><span>%/yr</span></div></div>
-      <div class="field"><label for="death">Base death loss</label><div class="in"><input id="death" type="number" step="0.25" value="1.5"><span>%</span></div><span class="hint">Raise it for one cut in the table</span></div>
+      <div class="field"><label for="death">Base death loss</label><div class="in"><input id="death" type="number" step="0.25" value="1.5"><span>%</span></div><span class="hint">Change it for one cut in the table</span></div>
       <div class="field"><label for="shrink">Shrink at sale</label><div class="in"><input id="shrink" type="number" step="0.5" value="2.0"><span>%</span></div></div>
     </div>
   </section>
@@ -250,7 +251,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
     </div>
     <div>
       <ul>
-        <li><b>Death loss</b> = death % × (cattle cost + half the gain cost), the extension-service method. Each cut uses the base death loss unless you pick a higher Death % for it from that cut's list; a cut set above the base shows in orange.</li>
+        <li><b>Death loss</b> = death % × (cattle cost + half the gain cost), the extension-service method. Each cut uses the base death loss unless you pick its own Death % (0% to 20%) from that cut's list; a cut set above the base shows in orange, below it in green.</li>
         <li><b>Breakeven $/cwt</b> = Total $/Hd ÷ pay weight × 100, where pay weight = End Wt less shrink.</li>
         <li><b>± $/Hd</b> shows only when you enter an expected sale price.</li>
         <li>Steers outside the steer weight range are flagged, because the default gain may not hold there.</li>
@@ -340,12 +341,12 @@ function calc(r, s, cogOverride){
   return {...out, ok:true, head, cost, gain, days, feed, interest, death, tot, payWt, be, profit, outRange, inWt, priceCwt: cost/inWt*100};
 }
 
-/* Death loss picker: Base, then higher choices in half-percent steps (a scroll wheel on phones). */
+/* Death loss picker: Base, then 0% to 20% in half-percent steps (a scroll wheel on phones). */
 function dlOptions(base, cur){
   base = isFinite(base) ? base : 0;
   const curN = cur === "" || cur == null ? NaN : num(cur);
   const vals = [];
-  for(let v = Math.floor(base*2)/2 + 0.5; v <= 20.0001; v += 0.5) vals.push(Math.round(v*10)/10);
+  for(let v = 0; v <= 20.0001; v += 0.5) vals.push(Math.round(v*10)/10);
   if(isFinite(curN) && !vals.some(v => Math.abs(v - curN) < 1e-9)) { vals.push(curN); vals.sort((a,b) => a-b); }
   return `<option value=""${isFinite(curN) ? "" : " selected"}>Base ${fmt(base,1)}%</option>` +
     vals.map(v => `<option value="${v}"${isFinite(curN) && Math.abs(v - curN) < 1e-9 ? " selected" : ""}>${fmt(v,1)}%</option>`).join("");
@@ -375,7 +376,7 @@ function renderBody(){
       <td data-o="cost"></td>
       <td>${cellInput(r,"adg","",fmt(c.adg),"0.05")}</td>
       <td>${cellInput(r,"endWt","",String(c.endWt),"5")}</td>
-      <td><select id="r${r.id}-dl" data-id="${r.id}" data-k="dl" data-base="${s.death}" class="dlsel${c.dlCustom && c.dl > (s.death||0) ? " hi" : ""}" aria-label="Death loss for ${String(r.cut||"this cut").replace(/"/g,"&quot;")}">${dlOptions(s.death, r.dl)}</select></td>
+      <td><select id="r${r.id}-dl" data-id="${r.id}" data-k="dl" data-base="${s.death}" class="dlsel${c.dlCustom && c.dl > (s.death||0) ? " hi" : (c.dlCustom && c.dl < (s.death||0) ? " lo" : "")}" aria-label="Death loss for ${String(r.cut||"this cut").replace(/"/g,"&quot;")}">${dlOptions(s.death, r.dl)}</select></td>
       <td data-o="days"></td><td class="out" data-o="date"></td><td data-o="gain"></td><td data-o="feed"></td><td data-o="tot"></td><td class="be" data-o="be"></td>
       <td>${cellInput(r,"sale","","—","0.25")}</td>
       <td data-o="profit"></td>
@@ -398,7 +399,7 @@ function update(){
     const dlIn = $(`r${r.id}-dl`);
     if(dlIn){
       if(dlIn.dataset.base !== String(s.death)){ dlIn.innerHTML = dlOptions(s.death, r.dl); dlIn.dataset.base = String(s.death); }
-      dlIn.className = "dlsel" + (c.dlCustom && c.dl > (s.death||0) ? " hi" : "");
+      dlIn.className = "dlsel" + (c.dlCustom && c.dl > (s.death||0) ? " hi" : (c.dlCustom && c.dl < (s.death||0) ? " lo" : ""));
       dlIn.title = c.dlCustom ? `${fmt(c.dl,1)}% for this cut (base is ${fmt(s.death,1)}%)` : "Using the base death loss";
     }
     const autoOpt = tr.querySelector('option[value="auto"]'); if(autoOpt) autoOpt.textContent = c.heifer ? "Heifer (auto)" : "Steer (auto)";
