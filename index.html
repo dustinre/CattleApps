@@ -689,7 +689,7 @@ Also find the buyer's name and the sale or purchase date if the sheet shows them
 Reply with only one JSON object:
 {"buyer":"JOSH","saleDate":"2026-11-03","rows":[{"cut":"JOSH-5","head":23,"avgWt":540,"priceCwt":347.86,"total":43238.50,"com":0,"trk":0,"chg":0}]}
 Byr Com is the buyer commission for that cut; Trk and Chg are trucking and other charges for that cut. Also give totWt (the Tot Wt column).
-Below the totals there may be separate bills such as a "HAUL" line (amount and who hauled them), trucking or freight lines. List each in "haul" as {"amount":750.00,"who":"JKM CATTLE LLC","label":"HAUL"}. Do not list Total Purchases, Total Charges or Total Amount Due there. Use [] when there are none.
+Below the totals there may be separate bills such as a "HAUL" line (amount and who hauled them), trucking or freight lines. List each in "haul" as {"amount":500.00,"who":"ABC TRUCKING","label":"HAUL"}. Do not list Total Purchases, Total Charges or Total Amount Due there. Use [] when there are none.
 Full shape: {"buyer":"...","saleDate":"...","rows":[{"cut":"...","head":0,"avgWt":0,"totWt":0,"priceCwt":0,"total":0,"com":0,"trk":0,"chg":0}],"haul":[{"amount":0,"who":"","label":"HAUL"}]}
 For the buyer, prefer the buyer or account name printed at the top of the sheet.
 saleDate must be YYYY-MM-DD or null. Use numbers, not strings, for every row field except cut. Copy the cut name exactly, including any trailing X. Use 0 for blank charge columns and null for anything you cannot read.`;
