@@ -130,6 +130,59 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
 .choice b{display:block}
 .choice small{display:block;color:var(--muted);font-size:.85rem}
 .choice select{margin-top:8px;width:100%;font:600 1rem var(--body);padding:9px 8px;border-radius:7px;border:1px solid var(--input-line);background:var(--input);color:var(--ink)}
+/* --- Simple breakeven screen --- */
+.simple-btn{align-self:flex-end;font:600 .95rem var(--body);padding:9px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.1);color:var(--band-ink);cursor:pointer;white-space:nowrap}
+.simple-btn:hover{background:rgba(255,255,255,.2)}
+.simple{position:fixed;inset:0;z-index:40;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.s-top{position:sticky;top:0;z-index:2;background:var(--band);color:var(--band-ink);padding-top:env(safe-area-inset-top,0px)}
+.s-top-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:10px max(12px,env(safe-area-inset-right,0px)) 10px max(12px,env(safe-area-inset-left,0px))}
+.s-top h2{margin:0;font:700 1.25rem var(--display);letter-spacing:.02em;text-align:center}
+.s-link{justify-self:start;background:none;border:0;color:var(--band-ink);font:600 1rem var(--body);padding:8px 4px;cursor:pointer}
+.s-link.r{justify-self:end;opacity:.85}
+.s-body{max-width:520px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(32px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:8px}
+.s-result{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px 12px;text-align:center;display:grid;gap:2px;margin-bottom:8px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:1;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+.s-k{font:600 .8rem var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.s-big{font:700 3.1rem/1.05 var(--display);color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.s-unit{color:var(--muted);font-size:.9rem;margin-top:-2px}
+.s-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+.s-mini div{display:flex;flex-direction:column;gap:1px;min-width:0}
+.s-mini b{font:600 1.05rem var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-mini span{font-size:.78rem;color:var(--muted)}
+.s-pl{margin-top:10px;font:600 1rem var(--mono);padding:8px;border-radius:10px;background:var(--input)}
+.s-pl.pos{color:var(--good)} .s-pl.neg{color:var(--bad)}
+.s-note{font-size:.82rem;color:var(--warn);margin-top:6px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:11px;padding:3px;gap:3px}
+.seg button{border:0;border-radius:9px;padding:9px;font:600 1rem var(--body);background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-checked="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.s-group{margin:12px 4px 2px;font:600 .8rem var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.s-list{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.cell{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:6px 14px;border:0;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font:500 1.02rem var(--body);width:100%;text-align:left;cursor:pointer}
+.s-list .cell:last-child{border-bottom:0}
+.cell .v{display:flex;align-items:center;gap:4px;font:500 1.1rem var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.cell .v i{font-style:normal;color:var(--muted);font-size:.9rem}
+.cell input{font:500 1.1rem var(--mono);border:0;background:transparent;color:var(--ink);text-align:right;width:7.5ch;padding:6px 0;font-variant-numeric:tabular-nums}
+.cell input[type=date]{width:auto;font-size:1rem}
+.cell input::placeholder{color:var(--muted);opacity:.6}
+.cell input:focus{outline:none}
+.cell:focus-within{background:var(--input)}
+.cell .chev{color:var(--muted);font-size:1.2rem;margin-left:4px}
+.cell .wv{color:var(--accent);font-weight:600}
+.s-foot{font-size:.82rem;color:var(--muted);margin:10px 4px 0;max-width:60ch}
+.wback{position:fixed;inset:0;z-index:60;background:rgba(10,14,10,.45);display:flex;align-items:flex-end;justify-content:center}
+.wsheet{background:var(--surface);color:var(--ink);width:100%;max-width:520px;border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px);box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+.wbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line)}
+.wbar b{font:600 1rem var(--body);text-align:center}
+.wlink{background:none;border:0;font:500 1.02rem var(--body);color:var(--accent);padding:8px 4px;cursor:pointer;justify-self:start}
+.wlink.strong{font-weight:700;justify-self:end}
+.wheel-wrap{position:relative;height:220px}
+.wheel{height:220px;overflow-y:scroll;scroll-snap-type:y mandatory;padding:88px 0;scrollbar-width:none;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+.wheel::-webkit-scrollbar{display:none}
+.wheel:focus{outline:none}
+.witem{height:44px;line-height:44px;text-align:center;scroll-snap-align:center;font:500 1.35rem var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;cursor:pointer}
+.witem.on{color:var(--ink);font-weight:600}
+.wband{position:absolute;left:12px;right:12px;top:88px;height:44px;border-radius:10px;background:var(--input);z-index:-0;pointer-events:none;mix-blend-mode:multiply}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .wband{mix-blend-mode:normal;background:rgba(255,255,255,.07)}}
+:root[data-theme="dark"] .wband{mix-blend-mode:normal;background:rgba(255,255,255,.07)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -145,6 +198,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
     <div class="hdr-fields">
       <label for="sheetName">Buyer / sheet name<input id="sheetName" type="text" value="" placeholder="Fills in from the sheet"></label>
       <label for="buyDate">Purchase date<input id="buyDate" type="date" value="2026-11-03"></label>
+      <button class="simple-btn" id="openSimple" type="button">Simple breakeven</button>
     </div>
   </div>
 </header>
@@ -262,6 +316,71 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
 
 </div></main>
 
+<div class="simple" id="simple" hidden role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <div class="s-top"><div class="s-top-in">
+    <button class="s-link" id="sBack" type="button" aria-label="Back to the full sheet">‹ Sheet</button>
+    <h2 id="sTitle">Simple Breakeven</h2>
+    <button class="s-link r" id="sReset" type="button">Reset</button>
+  </div></div>
+  <div class="s-body">
+    <div class="s-result" aria-live="polite">
+      <span class="s-k">Breakeven</span>
+      <span class="s-big" id="sBE">—</span>
+      <span class="s-unit" id="sUnit">Enter weight in and price</span>
+      <div class="s-mini">
+        <div><b id="sDays">—</b><span>days on feed</span></div>
+        <div><b id="sOut">—</b><span>out date</span></div>
+        <div><b id="sTot">—</b><span>cost to sell / hd</span></div>
+      </div>
+      <div class="s-pl" id="sPL" hidden></div>
+      <div class="s-note" id="sNote" hidden></div>
+    </div>
+
+    <div class="seg" role="radiogroup" aria-label="Type of cattle">
+      <button type="button" role="radio" data-sex="S" id="sSteer">Steers</button>
+      <button type="button" role="radio" data-sex="H" id="sHeifer">Heifers</button>
+    </div>
+
+    <p class="s-group">Purchase</p>
+    <div class="s-list">
+      <label class="cell" for="s_inWt"><span>Weight in</span><span class="v"><input id="s_inWt" data-s="inWt" type="text" inputmode="numeric" placeholder="550" autocomplete="off"><i>lb</i></span></label>
+      <label class="cell" for="s_price"><span>Price</span><span class="v"><i>$</i><input id="s_price" data-s="price" type="text" inputmode="decimal" placeholder="350.00" autocomplete="off"><i>/cwt</i></span></label>
+      <label class="cell" for="s_head"><span>Head</span><span class="v"><input id="s_head" data-s="head" type="text" inputmode="numeric" placeholder="1" autocomplete="off"><i>hd</i></span></label>
+      <label class="cell" for="s_date"><span>Purchase date</span><span class="v"><input id="s_date" data-s="date" type="date"></span></label>
+    </div>
+
+    <p class="s-group">Gain</p>
+    <div class="s-list">
+      <label class="cell" for="s_endWt"><span>End weight</span><span class="v"><input id="s_endWt" data-s="endWt" type="text" inputmode="numeric" placeholder="875" autocomplete="off"><i>lb</i></span></label>
+      <button class="cell" type="button" data-w="adg"><span>Gain per day</span><span class="v"><span class="wv" id="sv_adg"></span><span class="chev" aria-hidden="true">›</span></span></button>
+      <button class="cell" type="button" data-w="cog"><span>Cost of gain</span><span class="v"><span class="wv" id="sv_cog"></span><span class="chev" aria-hidden="true">›</span></span></button>
+    </div>
+
+    <p class="s-group">Costs</p>
+    <div class="s-list">
+      <button class="cell" type="button" data-w="death"><span>Death loss</span><span class="v"><span class="wv" id="sv_death"></span><span class="chev" aria-hidden="true">›</span></span></button>
+      <button class="cell" type="button" data-w="interest"><span>Interest</span><span class="v"><span class="wv" id="sv_interest"></span><span class="chev" aria-hidden="true">›</span></span></button>
+      <button class="cell" type="button" data-w="shrink"><span>Shrink at sale</span><span class="v"><span class="wv" id="sv_shrink"></span><span class="chev" aria-hidden="true">›</span></span></button>
+      <label class="cell" for="s_vet"><span>Vet &amp; processing</span><span class="v"><i>$</i><input id="s_vet" data-s="vet" type="text" inputmode="decimal" autocomplete="off"><i>/hd</i></span></label>
+      <label class="cell" for="s_sell"><span>Selling &amp; freight</span><span class="v"><i>$</i><input id="s_sell" data-s="sell" type="text" inputmode="decimal" autocomplete="off"><i>/hd</i></span></label>
+    </div>
+
+    <p class="s-group">Optional</p>
+    <div class="s-list">
+      <label class="cell" for="s_sale"><span>Expected sale price</span><span class="v"><i>$</i><input id="s_sale" data-s="sale" type="text" inputmode="decimal" placeholder="—" autocomplete="off"><i>/cwt</i></span></label>
+    </div>
+
+    <p class="s-foot">Same math as the full sheet. Starting costs come from the sheet's Assumptions; changes here stay here and don't touch your sheet.</p>
+  </div>
+</div>
+
+<div class="wback" id="wBack" hidden>
+  <div class="wsheet" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+    <div class="wbar"><button class="wlink" id="wCancel" type="button">Cancel</button><b id="wTitle"></b><button class="wlink strong" id="wDone" type="button">Done</button></div>
+    <div class="wheel-wrap"><div class="wband"></div><div class="wheel" id="wheel" tabindex="0" role="listbox" aria-labelledby="wTitle"></div></div>
+  </div>
+</div>
+
 <div class="modal" id="haulModal" hidden role="dialog" aria-modal="true" aria-labelledby="haulTitle">
   <div class="sheet">
     <h3 id="haulTitle">Haul bill found</h3>
@@ -304,8 +423,8 @@ const S = () => { const o = {}; SET_IDS.forEach(id => o[id] = num($(id).value));
 const fmt = (n,d=2) => isFinite(n) ? n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
 const isHeifer = r => r.sex === "H" || (r.sex === "auto" && /x\s*$/i.test(String(r.cut||"")));
 
-function outDate(days){
-  const v = $("buyDate").value;
+function outDate(days, dateStr){
+  const v = dateStr || $("buyDate").value;
   if(!v || !isFinite(days)) return "—";
   const [y,m,d] = v.split("-").map(Number);
   const dt = new Date(Date.UTC(y,m-1,d) + days*86400000);
@@ -812,6 +931,115 @@ $("savedList").addEventListener("click", e => {
   if(t.dataset.del2){ delete saved[decodeURIComponent(t.dataset.del2)]; store.set(SAVED_KEY, saved); renderSaved(); }
   if(t.dataset.keep){ renderSaved(); }
 });
+
+/* --- Simple breakeven: one made-up cut, phone-style --- */
+const SIMPLE_KEY = "be.simple.v1";
+const rng = (a, b, st) => { const out = []; for(let v = a; v <= b + st/2; v += st) out.push(Math.round(v*100)/100); return out; };
+const WHEELS = {
+  adg:      {title: "Gain per day", values: rng(0.5, 4, 0.05),  show: v => fmt(v,2) + " lb"},
+  cog:      {title: "Cost of gain", values: rng(0.4, 2.5, 0.01), show: v => "$" + fmt(v,2) + "/lb"},
+  death:    {title: "Death loss",   values: rng(0, 20, 0.5),    show: v => fmt(v,1) + "%"},
+  interest: {title: "Interest",     values: rng(0, 15, 0.25),   show: v => fmt(v,2) + "%"},
+  shrink:   {title: "Shrink at sale", values: rng(0, 6, 0.5),  show: v => fmt(v,1) + "%"}
+};
+function simpleDefaults(){
+  const s = S();
+  const pick = (v, d) => isFinite(v) ? v : d;
+  return {sex: "S", head: "", inWt: "", price: "", date: $("buyDate").value || toISO(new Date()),
+    endWt: String(pick(s.endSteer, 875)), adg: pick(s.adgSteer, 2), cog: pick(s.cog, 1), death: pick(s.death, 1.5),
+    interest: pick(s.interest, 8), shrink: pick(s.shrink, 2), vet: String(pick(s.vet, 25)), sell: String(pick(s.sell, 35)),
+    sale: "", endTouched: false, adgTouched: false};
+}
+let sm = (() => { const d = store.get(SIMPLE_KEY); return d && typeof d === "object" ? {...simpleDefaults(), ...d} : null; })();
+function simpleFill(){
+  ["inWt","price","head","date","endWt","vet","sell","sale"].forEach(k => { const el = $("s_"+k); if(el && document.activeElement !== el) el.value = sm[k] == null ? "" : sm[k]; });
+  Object.keys(WHEELS).forEach(k => { $("sv_"+k).textContent = WHEELS[k].show(+sm[k]); });
+  $("sSteer").setAttribute("aria-checked", sm.sex === "S"); $("sHeifer").setAttribute("aria-checked", sm.sex === "H");
+}
+function simpleUpdate(){
+  const end = num(sm.endWt);
+  const s = {adgSteer: +sm.adg, adgHeifer: +sm.adg, endSteer: end, endHeifer: end, rangeLo: 300, rangeHi: 875,
+    cog: +sm.cog, yardage: 0, vet: num(sm.vet) || 0, sell: num(sm.sell) || 0, interest: +sm.interest, death: +sm.death, shrink: +sm.shrink};
+  const head = num(sm.head) > 0 ? Math.round(num(sm.head)) : 1;
+  const c = calc({cut: "", head, inWt: sm.inWt, price: sm.price, total: "", extra: 0, com: 0, sex: sm.sex, adg: "", endWt: "", dl: "", sale: sm.sale}, s);
+  const pl = $("sPL"), note = $("sNote");
+  if(!c.ok || !(end > 0) || !(num(sm.price) > 0)){
+    $("sBE").textContent = "—"; $("sUnit").textContent = "Enter weight in and price";
+    $("sDays").textContent = $("sOut").textContent = $("sTot").textContent = "—"; pl.hidden = true; note.hidden = true;
+  } else {
+    $("sBE").textContent = "$" + fmt(c.be);
+    $("sUnit").textContent = `per cwt at ${fmt(c.payWt,0)} lb pay weight`;
+    $("sDays").textContent = c.gain > 0 ? fmt(c.days,0) : "0";
+    $("sOut").textContent = c.gain > 0 ? outDate(c.days, sm.date) : "Now";
+    $("sTot").textContent = "$" + fmt(c.tot,0);
+    if(isFinite(c.profit)){
+      pl.hidden = false; pl.className = "s-pl " + (c.profit >= 0 ? "pos" : "neg");
+      const sign = c.profit >= 0 ? "+$" : "−$";
+      pl.textContent = `${sign}${fmt(Math.abs(c.profit))} per head` + (head > 1 ? ` · ${sign}${fmt(Math.abs(c.profit*head),0)} for ${head} hd` : "");
+    } else pl.hidden = true;
+    const warn = [];
+    if(c.outRange) warn.push("Outside 300–875 lb, so this gain may not hold.");
+    if(c.gain <= 0) warn.push("End weight is at or below weight in.");
+    note.hidden = !warn.length; note.textContent = warn.join(" ");
+  }
+  store.set(SIMPLE_KEY, sm);
+}
+$("simple").addEventListener("input", e => {
+  const k = e.target.dataset && e.target.dataset.s; if(!k) return;
+  let v = e.target.value;
+  if(k !== "date"){ v = v.replace(/[^\d.]/g, ""); const p = v.split("."); if(p.length > 2) v = p[0] + "." + p.slice(1).join(""); if(v !== e.target.value) e.target.value = v; }
+  sm[k] = v; if(k === "endWt") sm.endTouched = true;
+  simpleUpdate();
+});
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  sm.sex = b.dataset.sex; const s = S(), h = sm.sex === "H";
+  if(!sm.endTouched){ const d = h ? s.endHeifer : s.endSteer; if(isFinite(d)) sm.endWt = String(d); }
+  if(!sm.adgTouched){ const d = h ? s.adgHeifer : s.adgSteer; if(isFinite(d)) sm.adg = d; }
+  simpleFill(); simpleUpdate();
+}));
+$("sReset").onclick = () => { sm = simpleDefaults(); simpleFill(); simpleUpdate(); };
+
+/* Scroll-wheel picker */
+const IH = 44; let wCfg = null;
+const wIndex = () => Math.max(0, Math.min(wCfg.values.length - 1, Math.round($("wheel").scrollTop / IH)));
+function markWheel(){ if(!wCfg) return; const i = wIndex(); [...$("wheel").children].forEach((el, k) => { el.classList.toggle("on", k === i); el.setAttribute("aria-selected", k === i); }); }
+function openWheel(key, opener){
+  const w = WHEELS[key]; wCfg = {...w, key, opener};
+  $("wTitle").textContent = w.title;
+  $("wheel").innerHTML = w.values.map((v, i) => `<div class="witem" role="option" data-i="${i}">${w.show(v)}</div>`).join("");
+  const cur = +sm[key]; let idx = 0, best = Infinity;
+  w.values.forEach((v, i) => { const d = Math.abs(v - cur); if(d < best){ best = d; idx = i; } });
+  $("wBack").hidden = false;
+  requestAnimationFrame(() => { $("wheel").scrollTop = idx * IH; markWheel(); $("wheel").focus({preventScroll: true}); });
+}
+function closeWheel(){ $("wBack").hidden = true; const o = wCfg && wCfg.opener; wCfg = null; if(o && o.focus) o.focus(); }
+$("wheel").addEventListener("scroll", () => requestAnimationFrame(markWheel), {passive: true});
+$("wheel").addEventListener("click", e => { const i = e.target.dataset && e.target.dataset.i; if(i != null) $("wheel").scrollTo({top: +i * IH, behavior: "smooth"}); });
+$("wheel").addEventListener("keydown", e => {
+  if(e.key === "ArrowDown" || e.key === "ArrowUp"){ e.preventDefault(); $("wheel").scrollTop = Math.max(0, wIndex() + (e.key === "ArrowDown" ? 1 : -1)) * IH; }
+  else if(e.key === "Enter"){ e.preventDefault(); $("wDone").click(); }
+});
+$("wDone").onclick = () => { if(!wCfg) return; const k = wCfg.key, v = wCfg.values[wIndex()]; sm[k] = v; if(k === "adg") sm.adgTouched = true; closeWheel(); simpleFill(); simpleUpdate(); };
+$("wCancel").onclick = closeWheel;
+$("wBack").addEventListener("click", e => { if(e.target === $("wBack")) closeWheel(); });
+document.querySelectorAll("#simple [data-w]").forEach(b => b.addEventListener("click", () => openWheel(b.dataset.w, b)));
+
+/* Open / close the simple screen; #simple in the address lets the phone's back button close it */
+function showSimple(on){
+  $("simple").hidden = !on; document.body.style.overflow = on ? "hidden" : "";
+  if(on){ if(!sm) sm = simpleDefaults(); simpleFill(); simpleUpdate(); $("simple").scrollTop = 0; $("sBack").focus({preventScroll: true}); }
+  else { closeWheel(); }
+}
+function route(){ showSimple(location.hash === "#simple"); }
+$("openSimple").onclick = () => { if(location.hash === "#simple") route(); else location.hash = "simple"; };
+$("sBack").onclick = () => { if(location.hash === "#simple") location.hash = ""; else showSimple(false); if(!$("simple").hidden) showSimple(false); $("openSimple").focus(); };
+window.addEventListener("hashchange", route);
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  if(!$("wBack").hidden){ closeWheel(); return; }
+  if(!$("simple").hidden) $("sBack").click();
+});
+route();
 
 const draft = store.get(DRAFT_KEY);
 if(draft && draft.rows) restore(draft); else renderBody();
