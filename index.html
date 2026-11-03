@@ -48,6 +48,8 @@ h2 small{font-family:var(--body);font-weight:400;font-size:.88rem;color:var(--mu
 .drop strong{font-family:var(--display);font-size:1.15rem;letter-spacing:.02em;display:block}
 .drop span{color:var(--muted);font-size:.9rem}
 .drop input{position:absolute;opacity:0;width:1px;height:1px}
+.pastebox{display:block;width:100%;margin-top:10px;resize:none;font:500 .92rem var(--body);padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.pastebox::placeholder{color:var(--muted)}
 .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .thumb{position:relative;width:96px;height:64px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -85,6 +87,7 @@ td select.t-steer{border-color:var(--accent);color:var(--accent)}
 td select.t-heifer{border-color:var(--straw);color:var(--straw)}
 td input::placeholder{color:var(--muted);opacity:.75}
 td.empty{position:static;text-align:left;font-family:var(--body);color:var(--muted);padding:20px 12px;white-space:normal}
+td input.hi{border-color:var(--warn);color:var(--warn);font-weight:600}
 td.be{font-weight:600;color:var(--accent);font-size:1rem}
 td.out{color:var(--straw);font-weight:600}
 td.pos{color:var(--good)} td.neg{color:var(--bad)}
@@ -113,6 +116,18 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
 .saved-item small{color:var(--muted)}
 .saved-item .acts{display:flex;gap:6px;flex-shrink:0}
 .confirm{display:inline-flex;gap:6px;align-items:center;font-size:.85rem}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(10,14,10,.55);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:18px;width:100%;max-width:460px;max-height:100%;overflow:auto;display:grid;gap:12px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.sheet h3{font-family:var(--display);font-weight:700;font-size:1.45rem;margin:0;letter-spacing:.01em}
+.sheet p{margin:0;color:var(--muted)}
+.sheet p b{color:var(--ink);font-family:var(--mono)}
+.choices{display:grid;gap:8px}
+.choice{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer}
+.choice:has(input:checked){border-color:var(--accent);background:var(--input)}
+.choice input{margin-top:4px;accent-color:var(--accent)}
+.choice b{display:block}
+.choice small{display:block;color:var(--muted);font-size:.85rem}
+.choice select{margin-top:8px;width:100%;font:600 1rem var(--body);padding:9px 8px;border-radius:7px;border:1px solid var(--input-line);background:var(--input);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -142,6 +157,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
       <span>On a phone, tap to take a picture or pick one from your photos. On a computer, drag them here or paste a screenshot.</span>
       <input id="photoInput" type="file" accept="image/*" multiple>
     </label>
+    <textarea id="pasteBox" class="pastebox" rows="1" placeholder="Or press and hold here, then tap Paste" aria-label="Paste a copied picture here"></textarea>
     <div class="thumbs" id="thumbs"></div>
     <div class="radio" role="radiogroup" aria-label="When reading photos">
       <label><input type="radio" name="readMode" value="replace" id="modeReplace" checked> Replace the cut list</label>
@@ -150,6 +166,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
     <div class="row-btns">
       <button class="btn primary" id="readBtn" disabled>Read cuts from photos</button>
       <button class="btn" id="stopBtn" hidden>Stop</button>
+      <button class="btn" id="clearPhotos" hidden>Clear pictures</button>
       <span class="status" id="readStatus">Add a picture to read it.</span>
     </div>
 
@@ -179,7 +196,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
       <div class="field"><label for="vet">Vet &amp; processing</label><div class="in"><span>$</span><input id="vet" type="number" step="1" value="25"><span>/hd</span></div></div>
       <div class="field"><label for="sell">Selling &amp; freight out</label><div class="in"><span>$</span><input id="sell" type="number" step="1" value="35"><span>/hd</span></div></div>
       <div class="field"><label for="interest">Interest rate</label><div class="in"><input id="interest" type="number" step="0.25" value="8.0"><span>%/yr</span></div></div>
-      <div class="field"><label for="death">Death loss</label><div class="in"><input id="death" type="number" step="0.25" value="1.5"><span>%</span></div></div>
+      <div class="field"><label for="death">Base death loss</label><div class="in"><input id="death" type="number" step="0.25" value="1.5"><span>%</span></div><span class="hint">Raise it for one cut in the table</span></div>
       <div class="field"><label for="shrink">Shrink at sale</label><div class="in"><input id="shrink" type="number" step="0.5" value="2.0"><span>%</span></div></div>
     </div>
   </section>
@@ -191,8 +208,8 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
     <table id="cutTable">
       <thead>
         <tr>
-          <th class="inp">Cut</th><th class="inp">Type</th><th class="inp">Hd</th><th class="inp">Avg Wt</th><th class="inp">$/cwt</th><th class="inp">Pen Total $</th><th class="inp" title="Buyer commission, trucking and other charges for the pen">Extra $</th>
-          <th>Cost/Hd</th><th class="inp">Gain/Day</th><th class="inp">End Wt</th><th>Days</th><th>Out Date</th><th>Lbs Gain</th><th>Gain $/Hd</th><th>Total $/Hd</th><th>Breakeven $/cwt</th><th class="inp">Sale $/cwt</th><th>± $/Hd</th><th><span hidden>Remove</span></th>
+          <th class="inp">Cut</th><th class="inp">Type</th><th class="inp">Hd</th><th class="inp">Avg Wt</th><th class="inp">$/cwt</th><th class="inp">Pen Total $</th><th class="inp" title="Buyer commission for the pen, from the Byr Com column">Byr Com $</th><th class="inp" title="Trucking, haul bills and other charges for the pen">Haul/Chg $</th>
+          <th>Cost/Hd</th><th class="inp">Gain/Day</th><th class="inp">End Wt</th><th class="inp" title="Leave blank to use the base death loss">Death %</th><th>Days</th><th>Out Date</th><th>Lbs Gain</th><th>Gain $/Hd</th><th>Total $/Hd</th><th>Breakeven $/cwt</th><th class="inp">Sale $/cwt</th><th>± $/Hd</th><th><span hidden>Remove</span></th>
         </tr>
       </thead>
       <tbody id="cutBody"></tbody>
@@ -201,6 +218,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
   </div>
   <div class="table-actions">
     <button class="btn" id="addRow">Add a cut</button>
+    <button class="btn" id="addHaul">Add a haul bill</button>
     <button class="btn" id="csvBtn" hidden>Download as spreadsheet (CSV)</button>
     <button class="btn" id="copyBtn">Copy table</button>
     <span class="status" id="tableStatus"></span>
@@ -222,7 +240,8 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
   <div class="notes">
     <div>
       <ul>
-        <li><b>Cost/Hd</b> = (Pen Total + Extra) ÷ Hd. If Pen Total is blank it uses Hd × Avg Wt × $/cwt.</li>
+        <li><b>Cost/Hd</b> = (Pen Total + Byr Com + Haul/Chg) ÷ Hd. If Pen Total is blank it uses Hd × Avg Wt × $/cwt. If a sheet's Total already includes the commission, it is taken out of Pen Total so it isn't counted twice.</li>
+        <li><b>Haul bills</b> can be spread over every cut by head or put on one cut.</li>
         <li><b>Days</b> = (End Wt − Avg Wt) ÷ Gain/Day, rounded up. <b>Out Date</b> = purchase date + days.</li>
         <li><b>Gain $</b> = lbs gained × cost of gain, plus yardage × days.</li>
         <li><b>Interest</b> on the cattle and vet for the full period, and on half the gain cost (it is spent gradually).</li>
@@ -230,7 +249,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
     </div>
     <div>
       <ul>
-        <li><b>Death loss</b> = death % × (cattle cost + half the gain cost), the extension-service method.</li>
+        <li><b>Death loss</b> = death % × (cattle cost + half the gain cost), the extension-service method. Each cut uses the base death loss unless you enter its own Death %; a cut set above the base shows in orange.</li>
         <li><b>Breakeven $/cwt</b> = Total $/Hd ÷ pay weight × 100, where pay weight = End Wt less shrink.</li>
         <li><b>± $/Hd</b> shows only when you enter an expected sale price.</li>
         <li>Steers outside the steer weight range are flagged, because the default gain may not hold there.</li>
@@ -240,6 +259,20 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
 </section>
 
 </div></main>
+
+<div class="modal" id="haulModal" hidden role="dialog" aria-modal="true" aria-labelledby="haulTitle">
+  <div class="sheet">
+    <h3 id="haulTitle">Haul bill found</h3>
+    <p id="haulDesc"></p>
+    <div class="field" id="haulAmtField"><label for="haulAmt">Haul bill amount</label><div class="in"><span>$</span><input id="haulAmt" type="number" step="0.01" min="0"></div></div>
+    <div class="choices">
+      <label class="choice"><input type="radio" name="haulHow" id="haulSpread" value="spread" checked><span><b>Spread over all cuts by head</b><small id="spreadNote"></small></span></label>
+      <label class="choice"><input type="radio" name="haulHow" id="haulOne" value="one"><span style="flex:1;min-width:0"><b>Put it all on one cut</b><select id="haulCut" aria-label="Cut to charge the haul bill to"></select></span></label>
+      <label class="choice"><input type="radio" name="haulHow" id="haulSkip" value="skip"><span><b>Leave it off</b><small>Don't add this bill to any cut</small></span></label>
+    </div>
+    <div class="row-btns" style="margin-top:0"><button class="btn primary" id="haulApply">Apply haul bill</button><button class="btn" id="haulCancel">Cancel</button></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -252,7 +285,16 @@ const store = {
 };
 
 let uid = 1;
-const mk = (cut,head,inWt,price,total,extra) => ({id:uid++,cut,head,inWt,price,total,extra:extra||0,sex:"auto",adg:"",endWt:"",sale:""});
+const mk = (cut,head,inWt,price,total,extra,com) => ({id:uid++,cut,head,inWt,price,total,com:com||0,extra:extra||0,sex:"auto",adg:"",endWt:"",dl:"",sale:""});
+/* Some sheets put commission inside Total, others list it beside. Take it out of Total when it's already in, so it's counted once. */
+function fixTotal(r, totWt){
+  const com = num(r.com) || 0, total = num(r.total), head = num(r.head), price = num(r.price);
+  const wt = totWt > 0 ? totWt : head*num(r.inWt);
+  if(!(com > 0) || !isFinite(total) || !(wt > 0) || !(price > 0)) return r;
+  const base = wt*price/100;
+  if(Math.abs(total - com - base) < Math.abs(total - base)) r.total = Math.round((total - com)*100)/100;
+  return r;
+}
 let rows = [];
 
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : NaN; };
@@ -273,11 +315,13 @@ function calc(r, s, cogOverride){
   const head = num(r.head), inWt = num(r.inWt), price = num(r.price);
   let total = num(r.total);
   if(!isFinite(total) && head>0 && inWt>0 && price>0) total = head*inWt*price/100;
-  const extra = num(r.extra) || 0;
+  const extra = (num(r.extra) || 0) + (num(r.com) || 0);
   const heifer = isHeifer(r);
   const adg = isFinite(num(r.adg)) && num(r.adg)>0 ? num(r.adg) : (heifer ? s.adgHeifer : s.adgSteer);
   const endWt = isFinite(num(r.endWt)) && num(r.endWt)>0 ? num(r.endWt) : (heifer ? s.endHeifer : s.endSteer);
-  const out = {heifer, adg, endWt, adgDefault: !(num(r.adg)>0), endDefault: !(num(r.endWt)>0)};
+  const dlCustom = r.dl !== "" && r.dl != null && isFinite(num(r.dl)) && num(r.dl) >= 0;
+  const dl = dlCustom ? num(r.dl) : (s.death||0);
+  const out = {heifer, adg, endWt, dl, dlCustom, adgDefault: !(num(r.adg)>0), endDefault: !(num(r.endWt)>0)};
   if(!(head>0) || !isFinite(total) || !(inWt>0)) return {...out, ok:false};
   const cost = (total+extra)/head;
   const gain = Math.max(0, endWt - inWt);
@@ -285,7 +329,7 @@ function calc(r, s, cogOverride){
   const feed = gain*cog + (s.yardage||0)*days;
   const rate = (s.interest||0)/100, yr = days/365;
   const interest = (cost + (s.vet||0))*rate*yr + feed*0.5*rate*yr;
-  const death = (s.death||0)/100*(cost + 0.5*feed);
+  const death = dl/100*(cost + 0.5*feed);
   const tot = cost + (s.vet||0) + feed + interest + death + (s.sell||0);
   const payWt = endWt*(1-(s.shrink||0)/100);
   const be = payWt>0 ? tot/payWt*100 : NaN;
@@ -315,22 +359,24 @@ function renderBody(){
       <td>${cellInput(r,"inWt","","lb","1")}</td>
       <td>${cellInput(r,"price","","0.00","0.01")}</td>
       <td>${cellInput(r,"total","","auto","0.01")}</td>
+      <td>${cellInput(r,"com","","0","0.01")}</td>
       <td>${cellInput(r,"extra","","0","0.01")}</td>
       <td data-o="cost"></td>
       <td>${cellInput(r,"adg","",fmt(c.adg),"0.05")}</td>
       <td>${cellInput(r,"endWt","",String(c.endWt),"5")}</td>
+      <td>${cellInput(r,"dl",c.dlCustom && c.dl > s.death ? "hi" : "",fmt(s.death,1),"0.25")}</td>
       <td data-o="days"></td><td class="out" data-o="date"></td><td data-o="gain"></td><td data-o="feed"></td><td data-o="tot"></td><td class="be" data-o="be"></td>
       <td>${cellInput(r,"sale","","—","0.25")}</td>
       <td data-o="profit"></td>
       <td><button class="del" data-del="${r.id}" aria-label="Remove ${r.cut||"cut"}">✕</button></td>
     </tr>`;
-  }).join("") || `<tr><td class="empty" colspan="19">No cuts yet. Add a picture of a buyer's summary sheet above, or tap <b>Add a cut</b> to type one in.</td></tr>`;
+  }).join("") || `<tr><td class="empty" colspan="21">No cuts yet. Add a picture of a buyer's summary sheet above, or tap <b>Add a cut</b> to type one in.</td></tr>`;
   update();
 }
 
 function update(){
   const s = S();
-  let H=0, inLbs=0, cost=0, tot=0, pay=0, gainLbs=0, feed=0, days=0, profit=0, profitHd=0, latest=0, earliest=Infinity;
+  let dlH=0, comT=0, haulT=0, H=0, inLbs=0, cost=0, tot=0, pay=0, gainLbs=0, feed=0, days=0, profit=0, profitHd=0, latest=0, earliest=Infinity;
   rows.forEach(r => {
     const tr = document.querySelector(`tr[data-row="${r.id}"]`); if(!tr) return;
     const c = calc(r,s);
@@ -338,6 +384,8 @@ function update(){
     const adgIn = $(`r${r.id}-adg`), endIn = $(`r${r.id}-endWt`);
     if(adgIn) adgIn.placeholder = fmt(c.adg);
     if(endIn) endIn.placeholder = String(c.endWt);
+    const dlIn = $(`r${r.id}-dl`);
+    if(dlIn){ dlIn.placeholder = fmt(s.death,1); dlIn.className = c.dlCustom && c.dl > (s.death||0) ? "hi" : ""; dlIn.title = c.dlCustom ? `${fmt(c.dl,2)}% for this cut (base is ${fmt(s.death,2)}%)` : "Using the base death loss"; }
     const autoOpt = tr.querySelector('option[value="auto"]'); if(autoOpt) autoOpt.textContent = c.heifer ? "Heifer (auto)" : "Steer (auto)";
     const selEl = tr.querySelector('select[data-k="sex"]'); if(selEl) selEl.className = c.heifer ? "t-heifer" : "t-steer";
     if(!c.ok){ ["cost","days","date","gain","feed","tot","be","profit"].forEach(k=>set(k,"—")); return; }
@@ -351,14 +399,15 @@ function update(){
     const pt = tr.querySelector('[data-o="profit"]');
     pt.className = isFinite(c.profit) ? (c.profit>=0?"pos":"neg") : "";
     pt.textContent = isFinite(c.profit) ? (c.profit>=0?"+":"") + fmt(c.profit) : "—";
+    comT += num(r.com)||0; haulT += num(r.extra)||0; dlH += c.dl*c.head;
     H += c.head; inLbs += c.inWt*c.head; cost += c.cost*c.head; tot += c.tot*c.head; pay += c.payWt*c.head;
     gainLbs += c.gain*c.head; feed += c.feed*c.head; days += c.days*c.head;
     if(isFinite(c.profit)){ profit += c.profit*c.head; profitHd += c.head; }
     if(c.gain>0){ latest = Math.max(latest,c.days); earliest = Math.min(earliest,c.days); }
   });
   const be = pay>0 ? tot/pay*100 : NaN;
-  $("cutFoot").innerHTML = H ? `<tr><td>Totals</td><td></td><td>${fmt(H,0)}</td><td>${fmt(inLbs/H,0)}</td><td>${fmt(cost/inLbs*100)}</td><td>${fmt(cost,2)}</td><td></td>
-    <td>${fmt(cost/H)}</td><td></td><td>${fmt(pay/H/(1-(s.shrink||0)/100),0)}</td><td>${fmt(days/H,0)}</td><td></td><td>${fmt(gainLbs/H,0)}</td><td>${fmt(feed/H)}</td><td>${fmt(tot/H)}</td><td class="be">${fmt(be)}</td><td></td>
+  $("cutFoot").innerHTML = H ? `<tr><td>Totals</td><td></td><td>${fmt(H,0)}</td><td>${fmt(inLbs/H,0)}</td><td>${fmt(cost/inLbs*100)}</td><td>${fmt(cost-comT-haulT,2)}</td><td>${fmt(comT)}</td><td>${fmt(haulT)}</td>
+    <td>${fmt(cost/H)}</td><td></td><td>${fmt(pay/H/(1-(s.shrink||0)/100),0)}</td><td>${fmt(dlH/H,2)}</td><td>${fmt(days/H,0)}</td><td></td><td>${fmt(gainLbs/H,0)}</td><td>${fmt(feed/H)}</td><td>${fmt(tot/H)}</td><td class="be">${fmt(be)}</td><td></td>
     <td class="${profitHd? (profit>=0?"pos":"neg"):""}">${profitHd ? (profit>=0?"+":"")+fmt(profit/profitHd) : "—"}</td><td></td></tr>` : "";
   $("summary").innerHTML = H ? [
     ["Head", fmt(H,0), `${rows.length} cuts · avg ${fmt(inLbs/H,0)} lb in`],
@@ -400,8 +449,8 @@ $("sheetName").addEventListener("input", saveDraft);
 /* --- table export --- */
 function tableRows(){
   const s = S();
-  const head = ["Cut","Type","Head","Avg Wt","$/cwt","Pen Total","Extra","Cost/Hd","Gain/Day","End Wt","Days","Out Date","Lbs Gain","Gain $/Hd","Total $/Hd","Breakeven $/cwt","Sale $/cwt","+/- $/Hd"];
-  const body = rows.map(r => { const c = calc(r,s); return [r.cut, c.heifer?"Heifer":"Steer", r.head, r.inWt, r.price, r.total, r.extra, c.ok?c.cost.toFixed(2):"", c.adg, c.endWt, c.ok?c.days:"", c.ok?outDate(c.days):"", c.ok?c.gain:"", c.ok?c.feed.toFixed(2):"", c.ok?c.tot.toFixed(2):"", c.ok?c.be.toFixed(2):"", r.sale, c.ok&&isFinite(c.profit)?c.profit.toFixed(2):""]; });
+  const head = ["Cut","Type","Head","Avg Wt","$/cwt","Pen Total","Byr Com","Haul/Chg","Cost/Hd","Gain/Day","End Wt","Death %","Days","Out Date","Lbs Gain","Gain $/Hd","Total $/Hd","Breakeven $/cwt","Sale $/cwt","+/- $/Hd"];
+  const body = rows.map(r => { const c = calc(r,s); return [r.cut, c.heifer?"Heifer":"Steer", r.head, r.inWt, r.price, r.total, r.com, r.extra, c.ok?c.cost.toFixed(2):"", c.adg, c.endWt, c.dl, c.ok?c.days:"", c.ok?outDate(c.days):"", c.ok?c.gain:"", c.ok?c.feed.toFixed(2):"", c.ok?c.tot.toFixed(2):"", c.ok?c.be.toFixed(2):"", r.sale, c.ok&&isFinite(c.profit)?c.profit.toFixed(2):""]; });
   return [head, ...body];
 }
 $("copyBtn").onclick = async () => {
@@ -429,14 +478,44 @@ let sampleFn = null, maxImages = 5, ocrOK = false;
 function renderThumbs(keepStatus){
   $("thumbs").innerHTML = photos.map((p,i) => `<div class="thumb"><img src="${p.url}" alt="Summary photo ${i+1}"><button data-rm="${i}" aria-label="Remove photo ${i+1}">✕</button></div>`).join("");
   $("readBtn").disabled = !photos.length || !(sampleFn || ocrOK);
+  $("clearPhotos").hidden = !photos.length;
   if(!(sampleFn || ocrOK) || keepStatus) return;
   $("readStatus").className = "status";
   $("readStatus").textContent = photos.length ? `${photos.length} picture${photos.length>1?"s":""} ready.` : "Add a picture to read it.";
 }
-function addFiles(list){
-  [...list].filter(f => /^image\//.test(f.type)).forEach(f => photos.push({file:f, url:URL.createObjectURL(f)}));
-  photos = photos.slice(0, maxImages);
+let lastReadDone = false;
+/* Turn any picture the browser can open (iPhone HEIC, big camera photos, pasted PNGs) into a JPEG the readers accept. */
+async function normalizeImage(file){
+  try{
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+    const long = Math.max(img.naturalWidth, img.naturalHeight), k = Math.min(1, 2600 / long);
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.naturalWidth*k); c.height = Math.round(img.naturalHeight*k);
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    const blob = await new Promise(res => c.toBlob(res, "image/jpeg", 0.92));
+    if(!blob) return file;
+    return new File([blob], (file.name || "sheet").replace(/\.\w+$/, "") + ".jpg", {type: "image/jpeg", lastModified: file.lastModified || Date.now()});
+  }catch(e){ return null; }
+}
+async function addFiles(list){
+  const files = [...list].filter(f => f && (/^image\//.test(f.type) || !f.type));
+  if(!files.length){ $("readStatus").className = "status err"; $("readStatus").textContent = "That wasn't a picture. Add a photo or screenshot of the sheet."; return; }
+  if(lastReadDone){ photos.forEach(p => URL.revokeObjectURL(p.url)); photos = []; lastReadDone = false; }
+  $("readStatus").className = "status"; $("readStatus").textContent = "Preparing picture…";
+  let bad = 0, dropped = 0;
+  for(const f of files){
+    const n = await normalizeImage(f);
+    if(!n){ bad++; continue; }
+    if(photos.length >= maxImages){ dropped++; continue; }
+    photos.push({file: n, url: URL.createObjectURL(n)});
+  }
   renderThumbs();
+  if(bad || dropped){
+    $("readStatus").className = "status err";
+    $("readStatus").textContent = (bad ? `${bad} picture${bad>1?"s":""} couldn't be opened. ` : "") + (dropped ? `Only ${maxImages} pictures fit at once; remove one to add more.` : "");
+  }
 }
 $("photoInput").addEventListener("change", e => { addFiles(e.target.files); e.target.value = ""; });
 $("thumbs").addEventListener("click", e => { const i = e.target.dataset.rm; if(i==null) return; URL.revokeObjectURL(photos[i].url); photos.splice(+i,1); renderThumbs(); });
@@ -444,7 +523,19 @@ const drop = $("drop");
 ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
 ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
 drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
-document.addEventListener("paste", e => { const files = [...(e.clipboardData?.items||[])].filter(i=>i.kind==="file").map(i=>i.getAsFile()).filter(Boolean); if(files.length){ addFiles(files); } });
+function pastedFiles(e){
+  const cd = e.clipboardData; if(!cd) return [];
+  let files = [...(cd.items||[])].filter(i => i.kind === "file").map(i => i.getAsFile()).filter(Boolean);
+  if(!files.length && cd.files) files = [...cd.files];
+  return files;
+}
+document.addEventListener("paste", e => {
+  const files = pastedFiles(e);
+  if(files.length){ e.preventDefault(); addFiles(files); }
+  else if(e.target && e.target.id === "pasteBox"){ e.preventDefault(); $("readStatus").className = "status err"; $("readStatus").textContent = "No picture was on the clipboard. Copy the picture first, then paste."; }
+});
+$("pasteBox").addEventListener("input", () => { $("pasteBox").value = ""; });
+$("clearPhotos").onclick = () => { photos.forEach(p => URL.revokeObjectURL(p.url)); photos = []; lastReadDone = false; renderThumbs(); };
 
 const PROMPT = `These images are livestock auction buyer summary sheets ("SUMMARY" / "Buyer's Totals"). Each row is one buyer cut (BuyerCut column, for example "JOSH-61" or "SMITH-4X").
 Read every data row from every image. Skip header and totals lines. If the same cut appears twice, include it once.
@@ -452,6 +543,10 @@ Columns usually are: BuyerCut, Tot Hd, Avg.Wt, Tot Wt, Avg.P/cwt, Avg.P/Hd, Byr 
 Also find the buyer's name and the sale or purchase date if the sheet shows them (a header, title line, or date stamp). If no buyer name is printed, use the shared letters before the dash in the cut names (for "JOSH-5" and "JOSH-61" that is "JOSH"). If no date is printed, use null.
 Reply with only one JSON object:
 {"buyer":"JOSH","saleDate":"2026-11-03","rows":[{"cut":"JOSH-5","head":23,"avgWt":540,"priceCwt":347.86,"total":43238.50,"com":0,"trk":0,"chg":0}]}
+Byr Com is the buyer commission for that cut; Trk and Chg are trucking and other charges for that cut. Also give totWt (the Tot Wt column).
+Below the totals there may be separate bills such as a "HAUL" line (amount and who hauled them), trucking or freight lines. List each in "haul" as {"amount":750.00,"who":"JKM CATTLE LLC","label":"HAUL"}. Do not list Total Purchases, Total Charges or Total Amount Due there. Use [] when there are none.
+Full shape: {"buyer":"...","saleDate":"...","rows":[{"cut":"...","head":0,"avgWt":0,"totWt":0,"priceCwt":0,"total":0,"com":0,"trk":0,"chg":0}],"haul":[{"amount":0,"who":"","label":"HAUL"}]}
+For the buyer, prefer the buyer or account name printed at the top of the sheet.
 saleDate must be YYYY-MM-DD or null. Use numbers, not strings, for every row field except cut. Copy the cut name exactly, including any trailing X. Use 0 for blank charge columns and null for anything you cannot read.`;
 
 const toISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -474,16 +569,72 @@ function applyHeader(data, got, replace){
   return dateNote;
 }
 
-function applyCuts(header, got, flagged){
+function applyCuts(header, got, flagged, hauls){
   if(!got.length){ $("readStatus").className = "status err"; $("readStatus").textContent = "No cuts were found. Try a sharper, straight-on picture with the whole table in view."; return; }
   const replace = $("modeReplace").checked;
   const dateNote = applyHeader(header, got, replace);
   if(replace) rows = got;
-  else got.forEach(g => { const i = rows.findIndex(r => String(r.cut).toUpperCase() === g.cut.toUpperCase()); if(i>=0){ g.adg = rows[i].adg; g.endWt = rows[i].endWt; g.sale = rows[i].sale; rows[i] = g; } else rows.push(g); });
+  else got.forEach(g => { const i = rows.findIndex(r => String(r.cut).toUpperCase() === g.cut.toUpperCase()); if(i>=0){ g.adg = rows[i].adg; g.endWt = rows[i].endWt; g.dl = rows[i].dl; g.sale = rows[i].sale; rows[i] = g; } else rows.push(g); });
   renderBody();
   $("readStatus").className = "status";
   $("readStatus").textContent = `Read ${got.length} cut${got.length>1?"s":""}; purchase date ${dateNote}. ` + (flagged.length ? `Numbers don't add up for ${flagged.join(", ")}; check those against the sheet.` : "Check the numbers against the sheet.");
+  lastReadDone = true;
+  $("readStatus").textContent += " Your next picture starts a new read.";
+  if(hauls && hauls.length){ haulQueue = hauls.slice(); openHaul(haulQueue.shift()); }
 }
+
+/* --- haul bills --- */
+let haulQueue = [], haulCurrent = null, haulOpener = null;
+function openHaul(h){
+  const valid = rows.filter(r => num(r.head) > 0);
+  if(!valid.length){ $("tableStatus").textContent = "Add cuts before adding a haul bill."; return; }
+  haulCurrent = h || {amount: NaN, who: "", label: "Haul", manual: true};
+  haulOpener = document.activeElement;
+  $("haulTitle").textContent = haulCurrent.manual ? "Add a haul bill" : `${haulCurrent.label || "Haul"} bill found`;
+  $("haulDesc").innerHTML = haulCurrent.manual ? "Enter the bill and choose how to charge it." :
+    `The sheet shows a <b>$${fmt(haulCurrent.amount)}</b> ${String(haulCurrent.label||"haul").toLowerCase()} bill${haulCurrent.who ? " from " + haulCurrent.who.replace(/</g,"&lt;") : ""}. How should it be charged?`;
+  $("haulAmt").value = isFinite(haulCurrent.amount) ? haulCurrent.amount.toFixed(2) : "";
+  $("haulCut").innerHTML = valid.map(r => `<option value="${r.id}">${String(r.cut||"(no name)").replace(/</g,"&lt;")} · ${num(r.head)} hd</option>`).join("");
+  $("haulSpread").checked = true;
+  updateSpreadNote();
+  $("haulModal").hidden = false;
+  (haulCurrent.manual ? $("haulAmt") : $("haulApply")).focus();
+}
+function updateSpreadNote(){
+  const H = rows.reduce((a,r) => a + (num(r.head) > 0 ? num(r.head) : 0), 0), amt = num($("haulAmt").value);
+  $("spreadNote").textContent = H && amt > 0 ? `$${fmt(amt/H)} per head across ${fmt(H,0)} head` : `Same amount per head across all ${fmt(H,0)} head`;
+}
+function closeHaul(next){
+  $("haulModal").hidden = true; haulCurrent = null;
+  if(next && haulQueue.length) openHaul(haulQueue.shift());
+  else { haulQueue = []; if(haulOpener && haulOpener.focus) haulOpener.focus(); }
+}
+$("haulAmt").addEventListener("input", updateSpreadNote);
+$("haulCut").addEventListener("change", () => { $("haulOne").checked = true; });
+$("haulCut").addEventListener("focus", () => { $("haulOne").checked = true; });
+$("haulCancel").onclick = () => closeHaul(true);
+$("haulModal").addEventListener("keydown", e => { if(e.key === "Escape") closeHaul(true); });
+$("haulModal").addEventListener("click", e => { if(e.target === $("haulModal")) closeHaul(true); });
+$("addHaul").onclick = () => openHaul(null);
+$("haulApply").onclick = () => {
+  const amt = Math.round(num($("haulAmt").value)*100)/100;
+  const how = document.querySelector('input[name="haulHow"]:checked').value;
+  if(how !== "skip" && !(amt > 0)){ $("haulAmt").focus(); return; }
+  const add = (r, v) => { r.extra = Math.round(((num(r.extra)||0) + v)*100)/100; };
+  let msg = "Haul bill left off.";
+  if(how === "spread"){
+    const valid = rows.filter(r => num(r.head) > 0), H = valid.reduce((a,r) => a + num(r.head), 0);
+    let left = amt;
+    valid.forEach((r,i) => { const v = i === valid.length-1 ? left : Math.round(amt*num(r.head)/H*100)/100; left = Math.round((left - v)*100)/100; add(r, v); });
+    msg = `$${fmt(amt)} haul bill spread at $${fmt(amt/H)} per head.`;
+  } else if(how === "one"){
+    const r = rows.find(x => x.id === +$("haulCut").value);
+    if(r){ add(r, amt); msg = `$${fmt(amt)} haul bill added to ${r.cut || "that cut"}.`; }
+  }
+  $("tableStatus").textContent = msg;
+  renderBody();
+  closeHaul(true);
+};
 
 /* On-device reader for when the page is not opened in Claude (for example on GitHub Pages) */
 function loadTesseract(){
@@ -509,7 +660,7 @@ async function prepImage(file){
   return c;
 }
 function parseSheet(text){
-  const got = [], flagged = [], seen = new Set();
+  const got = [], flagged = [], seen = new Set(), hauls = [];
   let saleDate = null;
   const dm = text.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/);
   if(dm){ let y = +dm[3]; if(y < 100) y += 2000; const m = +dm[1], d = +dm[2];
@@ -519,19 +670,25 @@ function parseSheet(text){
     const m = L.match(/^(\S*[A-Za-z]\S*)\s+(.+)$/);
     if(!m) return;
     const cut = m[1].replace(/[^A-Za-z0-9\-]/g, "").toUpperCase();
+    if(/^(HAUL|TRUCK|FREIGHT|TRUCKING)$/.test(cut)){
+      const hm = m[2].match(/^\$?\s*(\d+(?:\.\d{1,2})?)\s*(.*)$/);
+      if(hm && +hm[1] > 0) hauls.push({amount: +hm[1], who: hm[2].trim(), label: cut.charAt(0) + cut.slice(1).toLowerCase()});
+      return;
+    }
     if(!cut || /^(BUYER|TOTAL|SUMMARY|AVG)/.test(cut) || seen.has(cut)) return;
     const n = (m[2].replace(/[Oo]/g, "0").replace(/[lI]/g, "1").match(/\d+(?:\.\d+)?/g) || []).map(Number);
     if(n.length < 6) return;
     const head = n[0], avgWt = n[1], totWt = n[2], price = n[3], total = n[n.length-1];
-    const extra = n.length >= 9 ? n[5] + n[6] + n[7] : 0;
+    const com = n.length >= 9 ? n[5] : 0, extra = n.length >= 9 ? n[6] + n[7] : 0;
     seen.add(cut);
-    const r = mk(cut, head, avgWt, price, total, extra);
+    const base = totWt*price/100;
+    const totOff = [0, com, extra, com+extra].every(a => Math.abs(base + a - total) > 0.02*total);
+    const r = fixTotal(mk(cut, head, avgWt, price, total, extra, com), totWt);
     const wtOff = Math.abs(head*avgWt - totWt) > 0.03*totWt;
-    const totOff = Math.abs(totWt*price/100 - total) > 0.02*total && Math.abs(totWt*price/100 + extra - total) > 0.02*total;
     if(wtOff || totOff || !Number.isInteger(head)) flagged.push(cut);
     got.push(r);
   });
-  return {header: {buyer: "", saleDate}, got, flagged};
+  return {header: {buyer: "", saleDate}, got, flagged, hauls};
 }
 async function readOCR(){
   $("readBtn").disabled = true;
@@ -549,8 +706,8 @@ async function readOCR(){
       text += "\n" + r.data.text;
     }
     await worker.terminate();
-    const {header, got, flagged} = parseSheet(text);
-    applyCuts(header, got, flagged);
+    const {header, got, flagged, hauls} = parseSheet(text);
+    applyCuts(header, got, flagged, hauls);
   }catch(e){
     $("readStatus").className = "status err";
     $("readStatus").textContent = "The picture reader couldn't load or read this picture. Check your connection, or type the cuts in.";
@@ -571,11 +728,12 @@ $("readBtn").onclick = async () => {
     const list = Array.isArray(data) ? data : (data && Array.isArray(data.rows) ? data.rows : []);
     const header = Array.isArray(data) ? {} : data;
     const got = list.filter(o => o && o.cut).map(o => {
-      const r = mk(String(o.cut).trim(), num(o.head), num(o.avgWt), num(o.priceCwt), num(o.total), (num(o.com)||0)+(num(o.trk)||0)+(num(o.chg)||0));
+      const r = fixTotal(mk(String(o.cut).trim(), num(o.head), num(o.avgWt), num(o.priceCwt), num(o.total), (num(o.trk)||0)+(num(o.chg)||0), num(o.com)||0), num(o.totWt));
       ["head","inWt","price","total"].forEach(k => { if(!isFinite(r[k])) r[k] = ""; });
       return r;
     });
-    applyCuts(header, got, []);
+    const hauls = (header && Array.isArray(header.haul) ? header.haul : []).map(h => ({amount: num(h && h.amount), who: String((h && h.who) || "").trim(), label: String((h && h.label) || "Haul").trim()})).filter(h => h.amount > 0);
+    applyCuts(header, got, [], hauls);
   }catch(e){
     const code = e && e.code;
     $("readStatus").className = code==="cancelled" ? "status" : "status err";
@@ -587,7 +745,7 @@ $("readBtn").onclick = async () => {
       image_rejected:"That picture couldn't be read. Try a JPG or PNG under 20 MB.",
       rate_limited:"Too many reads right now. Wait a bit and try again.",
       invalid_json:"The sheet came back unclear. Try again or use a sharper picture."
-    })[code] || "Reading failed. Try again in a moment.";
+    })[code] || `Reading failed (${code || "unknown error"}). Try again in a moment.`;
   }finally{
     $("stopBtn").hidden = true; ctl = null; renderThumbs(true);
   }
