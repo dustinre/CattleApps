@@ -264,8 +264,8 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
     <table id="cutTable">
       <thead>
         <tr>
-          <th class="inp">Cut</th><th class="inp">Type</th><th class="inp">Hd</th><th class="inp">Avg Wt</th><th class="inp">$/cwt</th><th class="inp" title="The Total column for this cut on the invoice">Invoice Total $</th><th class="inp" title="Buyer commission for the pen, from the Byr Com column">Byr Com $</th><th class="inp" title="Trucking, haul bills and other charges for the pen">Haul/Chg $</th>
-          <th title="Invoice Total + Byr Com + Haul/Chg">Pen Total</th><th title="Pen Total ÷ Hd">Cost/Hd</th><th title="Cost/Hd ÷ Avg Wt">Avg $/cwt</th><th class="inp">Gain/Day</th><th class="inp">End Wt</th><th class="inp" title="Leave blank to use the base death loss">Death %</th><th>Days</th><th>Out Date</th><th>Lbs Gain</th><th>Gain $/Hd</th><th>Total $/Hd</th><th>Breakeven $/cwt</th><th class="inp">Sale $/cwt</th><th>± $/Hd</th><th><span hidden>Remove</span></th>
+          <th class="inp">Cut</th><th class="inp">Type</th><th class="inp">Hd</th><th class="inp">Avg Wt</th><th class="inp" title="Total weight of the cut from the invoice">Tot Wt</th><th class="inp">$/cwt</th><th class="inp" title="The Total column for this cut on the invoice">Invoice Total $</th><th class="inp" title="Buyer commission for the pen, from the Byr Com column">Byr Com $</th><th class="inp" title="Trucking, haul bills and other charges for the pen">Haul/Chg $</th>
+          <th title="Invoice Total + Byr Com + Haul/Chg">Pen Total</th><th title="Pen Total ÷ Hd">Cost/Hd</th><th title="Pen Total ÷ Tot Wt">Avg $/cwt</th><th class="inp">Gain/Day</th><th class="inp">End Wt</th><th class="inp" title="Leave blank to use the base death loss">Death %</th><th>Days</th><th>Out Date</th><th>Lbs Gain</th><th>Gain $/Hd</th><th>Total $/Hd</th><th>Breakeven $/cwt</th><th class="inp">Sale $/cwt</th><th>± $/Hd</th><th><span hidden>Remove</span></th>
         </tr>
       </thead>
       <tbody id="cutBody"></tbody>
@@ -298,7 +298,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
       <ul>
         <li><b>Pen Total</b> = Invoice Total + Byr Com + Haul/Chg for the cut. If Invoice Total is blank it uses Hd × Avg Wt × $/cwt. If a sheet's Total already includes the commission, it is taken out first so it isn't counted twice.</li>
         <li><b>Cost/Hd</b> = Pen Total ÷ Hd.</li>
-        <li><b>Avg $/cwt</b> = Cost/Hd ÷ Avg Wt × 100.</li>
+        <li><b>Avg $/cwt</b> = Pen Total ÷ Tot Wt × 100, using the invoice's Tot Wt (or Hd × Avg Wt if Tot Wt is blank).</li>
         <li><b>Haul bills</b> can be spread over every cut by head or put on one cut.</li>
         <li><b>Days</b> = (End Wt − Avg Wt) ÷ Gain/Day, rounded up. <b>Out Date</b> = purchase date + days.</li>
         <li><b>Gain $</b> = lbs gained × cost of gain, plus yardage × days.</li>
@@ -408,7 +408,7 @@ const store = {
 };
 
 let uid = 1;
-const mk = (cut,head,inWt,price,total,extra,com) => ({id:uid++,cut,head,inWt,price,total,com:com||0,extra:extra||0,sex:"auto",adg:"",endWt:"",dl:"",sale:""});
+const mk = (cut,head,inWt,price,total,extra,com) => ({id:uid++,cut,head,inWt,price,total,com:com||0,extra:extra||0,totWt:"",sex:"auto",adg:"",endWt:"",dl:"",sale:""});
 /* Some sheets put commission inside Total, others list it beside. Take it out of Total when it's already in, so it's counted once. */
 function fixTotal(r, totWt){
   const com = num(r.com) || 0, total = num(r.total), head = num(r.head), price = num(r.price);
@@ -447,6 +447,7 @@ function calc(r, s, cogOverride){
   const out = {heifer, adg, endWt, dl, dlCustom, adgDefault: !(num(r.adg)>0), endDefault: !(num(r.endWt)>0)};
   if(!(head>0) || !isFinite(total) || !(inWt>0)) return {...out, ok:false};
   const pen = total + extra;            // Pen Total: invoice Total + buyer commission + haul/charges on the cut line
+  const wt = num(r.totWt) > 0 ? num(r.totWt) : head*inWt;   // invoice Tot Wt, or Hd × Avg Wt when it's missing
   const purchase = pen/head;            // Cost/Hd = Pen Total ÷ Hd
   const addon = 0;
   const cost = purchase;
@@ -462,7 +463,7 @@ function calc(r, s, cogOverride){
   const sale = num(r.sale);
   const profit = sale>0 ? sale*payWt/100 - tot : NaN;
   const outRange = !heifer && (inWt < s.rangeLo || endWt > s.rangeHi);
-  return {...out, ok:true, head, pen, purchase, addon, cost, gain, days, feed, interest, death, tot, payWt, be, profit, outRange, inWt, priceCwt: purchase/inWt*100};
+  return {...out, ok:true, head, pen, purchase, addon, cost, gain, days, feed, interest, death, tot, payWt, be, profit, outRange, inWt, wt, priceCwt: pen/wt*100};
 }
 
 /* Death loss picker: Base, then 0% to 20% in half-percent steps (a scroll wheel on phones). */
@@ -493,6 +494,7 @@ function renderBody(){
       <td>${sel}</td>
       <td>${cellInput(r,"head","","0","1")}</td>
       <td>${cellInput(r,"inWt","","lb","1")}</td>
+      <td>${cellInput(r,"totWt","",(num(r.head)>0&&num(r.inWt)>0)?String(Math.round(num(r.head)*num(r.inWt))):"lb","1")}</td>
       <td>${cellInput(r,"price","","0.00","0.01")}</td>
       <td>${cellInput(r,"total","","auto","0.01")}</td>
       <td>${cellInput(r,"com","","0","0.01")}</td>
@@ -506,13 +508,13 @@ function renderBody(){
       <td data-o="profit"></td>
       <td><button class="del" data-del="${r.id}" aria-label="Remove ${r.cut||"cut"}">✕</button></td>
     </tr>`;
-  }).join("") || `<tr><td class="empty" colspan="23">No cuts yet. Add a picture of a buyer's summary sheet above, or tap <b>Add a cut</b> to type one in.</td></tr>`;
+  }).join("") || `<tr><td class="empty" colspan="24">No cuts yet. Add a picture of a buyer's summary sheet above, or tap <b>Add a cut</b> to type one in.</td></tr>`;
   update();
 }
 
 function update(){
   const s = S();
-  let purT=0, dlH=0, comT=0, haulT=0, H=0, inLbs=0, cost=0, tot=0, pay=0, gainLbs=0, feed=0, days=0, profit=0, profitHd=0, latest=0, earliest=Infinity;
+  let wtT=0, purT=0, dlH=0, comT=0, haulT=0, H=0, inLbs=0, cost=0, tot=0, pay=0, gainLbs=0, feed=0, days=0, profit=0, profitHd=0, latest=0, earliest=Infinity;
   rows.forEach(r => {
     const tr = document.querySelector(`tr[data-row="${r.id}"]`); if(!tr) return;
     const c = calc(r,s);
@@ -542,19 +544,19 @@ function update(){
     pt.className = isFinite(c.profit) ? (c.profit>=0?"pos":"neg") : "";
     pt.textContent = isFinite(c.profit) ? (c.profit>=0?"+":"") + fmt(c.profit) : "—";
     comT += num(r.com)||0; haulT += num(r.extra)||0; dlH += c.dl*c.head;
-    purT += c.purchase*c.head;
+    purT += c.purchase*c.head; wtT += c.wt;
     H += c.head; inLbs += c.inWt*c.head; cost += c.cost*c.head; tot += c.tot*c.head; pay += c.payWt*c.head;
     gainLbs += c.gain*c.head; feed += c.feed*c.head; days += c.days*c.head;
     if(isFinite(c.profit)){ profit += c.profit*c.head; profitHd += c.head; }
     if(c.gain>0){ latest = Math.max(latest,c.days); earliest = Math.min(earliest,c.days); }
   });
   const be = pay>0 ? tot/pay*100 : NaN;
-  $("cutFoot").innerHTML = H ? `<tr><td>Totals</td><td></td><td>${fmt(H,0)}</td><td>${fmt(inLbs/H,0)}</td><td>${fmt(cost/inLbs*100)}</td><td>${fmt(cost-comT-haulT,2)}</td><td>${fmt(comT)}</td><td>${fmt(haulT)}</td>
-    <td>${fmt(cost,2)}</td><td>${fmt(purT/H)}</td><td>${fmt(purT/inLbs*100)}</td><td></td><td>${fmt(pay/H/(1-(s.shrink||0)/100),0)}</td><td>${fmt(dlH/H,2)}</td><td>${fmt(days/H,0)}</td><td></td><td>${fmt(gainLbs/H,0)}</td><td>${fmt(feed/H)}</td><td>${fmt(tot/H)}</td><td class="be">${fmt(be)}</td><td></td>
+  $("cutFoot").innerHTML = H ? `<tr><td>Totals</td><td></td><td>${fmt(H,0)}</td><td>${fmt(inLbs/H,0)}</td><td>${fmt(wtT,0)}</td><td>${fmt(cost/wtT*100)}</td><td>${fmt(cost-comT-haulT,2)}</td><td>${fmt(comT)}</td><td>${fmt(haulT)}</td>
+    <td>${fmt(cost,2)}</td><td>${fmt(purT/H)}</td><td>${fmt(cost/wtT*100)}</td><td></td><td>${fmt(pay/H/(1-(s.shrink||0)/100),0)}</td><td>${fmt(dlH/H,2)}</td><td>${fmt(days/H,0)}</td><td></td><td>${fmt(gainLbs/H,0)}</td><td>${fmt(feed/H)}</td><td>${fmt(tot/H)}</td><td class="be">${fmt(be)}</td><td></td>
     <td class="${profitHd? (profit>=0?"pos":"neg"):""}">${profitHd ? (profit>=0?"+":"")+fmt(profit/profitHd) : "—"}</td><td></td></tr>` : "";
   $("summary").innerHTML = H ? [
     ["Head", fmt(H,0), `${rows.length} cuts · avg ${fmt(inLbs/H,0)} lb in`],
-    ["Cattle invested", "$"+fmt(cost,0), `$${fmt(cost/inLbs*100)}/cwt delivered`],
+    ["Cattle invested", "$"+fmt(cost,0), `$${fmt(cost/wtT*100)}/cwt delivered`],
     ["Total cost to sell", "$"+fmt(tot,0), `$${fmt(tot/H)} per head`],
     ["Breakeven", "$"+fmt(be), "per cwt pay weight, head-weighted"],
     ["Out window", earliest<Infinity ? outDate(earliest) : "—", earliest<Infinity ? `through ${outDate(latest)}` : "No gain set"],
@@ -592,8 +594,8 @@ $("sheetName").addEventListener("input", saveDraft);
 /* --- table export --- */
 function tableRows(){
   const s = S();
-  const head = ["Cut","Type","Head","Avg Wt","$/cwt","Invoice Total","Byr Com","Haul/Chg","Pen Total","Cost/Hd","Avg $/cwt","Gain/Day","End Wt","Death %","Days","Out Date","Lbs Gain","Gain $/Hd","Total $/Hd","Breakeven $/cwt","Sale $/cwt","+/- $/Hd"];
-  const body = rows.map(r => { const c = calc(r,s); return [r.cut, c.heifer?"Heifer":"Steer", r.head, r.inWt, r.price, r.total, r.com, r.extra, c.ok?c.pen.toFixed(2):"", c.ok?c.purchase.toFixed(2):"", c.ok?c.priceCwt.toFixed(2):"", c.adg, c.endWt, c.dl, c.ok?c.days:"", c.ok?outDate(c.days):"", c.ok?c.gain:"", c.ok?c.feed.toFixed(2):"", c.ok?c.tot.toFixed(2):"", c.ok?c.be.toFixed(2):"", r.sale, c.ok&&isFinite(c.profit)?c.profit.toFixed(2):""]; });
+  const head = ["Cut","Type","Head","Avg Wt","Tot Wt","$/cwt","Invoice Total","Byr Com","Haul/Chg","Pen Total","Cost/Hd","Avg $/cwt","Gain/Day","End Wt","Death %","Days","Out Date","Lbs Gain","Gain $/Hd","Total $/Hd","Breakeven $/cwt","Sale $/cwt","+/- $/Hd"];
+  const body = rows.map(r => { const c = calc(r,s); return [r.cut, c.heifer?"Heifer":"Steer", r.head, r.inWt, r.totWt, r.price, r.total, r.com, r.extra, c.ok?c.pen.toFixed(2):"", c.ok?c.purchase.toFixed(2):"", c.ok?c.priceCwt.toFixed(2):"", c.adg, c.endWt, c.dl, c.ok?c.days:"", c.ok?outDate(c.days):"", c.ok?c.gain:"", c.ok?c.feed.toFixed(2):"", c.ok?c.tot.toFixed(2):"", c.ok?c.be.toFixed(2):"", r.sale, c.ok&&isFinite(c.profit)?c.profit.toFixed(2):""]; });
   return [head, ...body];
 }
 $("copyBtn").onclick = async () => {
@@ -827,6 +829,7 @@ function parseSheet(text){
     const base = totWt*price/100;
     const totOff = [0, com, extra, com+extra].every(a => Math.abs(base + a - total) > 0.02*total);
     const r = fixTotal(mk(cut, head, avgWt, price, total, extra, com), totWt);
+    r.totWt = totWt;
     const wtOff = Math.abs(head*avgWt - totWt) > 0.03*totWt;
     if(wtOff || totOff || !Number.isInteger(head)) flagged.push(cut);
     got.push(r);
@@ -872,6 +875,7 @@ $("readBtn").onclick = async () => {
     const header = Array.isArray(data) ? {} : data;
     const got = list.filter(o => o && o.cut).map(o => {
       const r = fixTotal(mk(String(o.cut).trim(), num(o.head), num(o.avgWt), num(o.priceCwt), num(o.total), (num(o.trk)||0)+(num(o.chg)||0), num(o.com)||0), num(o.totWt));
+      r.totWt = num(o.totWt) > 0 ? num(o.totWt) : "";
       ["head","inWt","price","total"].forEach(k => { if(!isFinite(r[k])) r[k] = ""; });
       return r;
     });
