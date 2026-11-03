@@ -253,7 +253,7 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
       <div class="field"><label for="sell">Selling &amp; freight out</label><div class="in"><span>$</span><input id="sell" type="number" step="1" value="35"><span>/hd</span></div></div>
       <div class="field"><label for="interest">Interest rate</label><div class="in"><input id="interest" type="number" step="0.25" value="8.0"><span>%/yr</span></div></div>
       <div class="field"><label for="death">Base death loss</label><div class="in"><input id="death" type="number" step="0.25" value="1.5"><span>%</span></div><span class="hint">Change it for one cut in the table</span></div>
-      <div class="field"><label for="shrink">Shrink at sale</label><div class="in"><input id="shrink" type="number" step="0.5" value="2.0"><span>%</span></div></div>
+      <div class="field"><label for="shrink">Shrink at sale</label><div class="in"><input id="shrink" type="number" step="0.5" value="0.00"><span>%</span></div></div>
     </div>
   </section>
 </div>
@@ -947,7 +947,7 @@ function simpleDefaults(){
   const pick = (v, d) => isFinite(v) ? v : d;
   return {sex: "S", head: "", inWt: "", price: "", date: $("buyDate").value || toISO(new Date()),
     endWt: String(pick(s.endSteer, 875)), adg: pick(s.adgSteer, 2), cog: pick(s.cog, 1), death: pick(s.death, 1.5),
-    interest: pick(s.interest, 8), shrink: pick(s.shrink, 2), vet: String(pick(s.vet, 25)), sell: String(pick(s.sell, 35)),
+    interest: pick(s.interest, 8), shrink: pick(s.shrink, 0), vet: String(pick(s.vet, 25)), sell: String(pick(s.sell, 35)),
     sale: "", endTouched: false, adgTouched: false};
 }
 let sm = (() => { const d = store.get(SIMPLE_KEY); return d && typeof d === "object" ? {...simpleDefaults(), ...d} : null; })();
