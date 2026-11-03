@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cattle Breakeven Sheet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: sale-barn ticket — header band, intake + assumptions, one wide cut table, pen summary, method notes */
+:root{
+  --bg:#f2f3ee; --surface:#ffffff; --ink:#1c231d; --muted:#5d665e; --line:#d5d9ce;
+  --accent:#2f5d3a; --accent-ink:#ffffff; --straw:#9a6b0e; --input:#fbf6e8; --input-line:#e2d6b4;
+  --good:#23704a; --bad:#b0261c; --warn:#94600a; --band:#1f3a27; --band-ink:#eef2ea;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131712; --surface:#1b2019; --ink:#e6eae1; --muted:#9aa396; --line:#30382d;
+  --accent:#86bf92; --accent-ink:#0f1a12; --straw:#e3b55a; --input:#262619; --input-line:#4a4630;
+  --good:#6cc794; --bad:#f08a80; --warn:#e5b04f; --band:#0d1a11; --band-ink:#e6eae1; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131712; --surface:#1b2019; --ink:#e6eae1; --muted:#9aa396; --line:#30382d;
+  --accent:#86bf92; --accent-ink:#0f1a12; --straw:#e3b55a; --input:#262619; --input-line:#4a4630;
+  --good:#6cc794; --bad:#f08a80; --warn:#e5b04f; --band:#0d1a11; --band-ink:#e6eae1; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.band{background:var(--band);color:var(--band-ink)}
+header.band .wrap{padding-block:22px 18px;display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between}
+h1{font-family:var(--display);font-weight:700;font-size:2.3rem;letter-spacing:.01em;margin:0;line-height:1;text-wrap:balance}
+.sub{margin:6px 0 0;opacity:.8;font-size:.95rem}
+.hdr-fields{display:flex;flex-wrap:wrap;gap:12px}
+.hdr-fields label{display:flex;flex-direction:column;gap:3px;font-family:var(--display);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.hdr-fields input{font:500 .95rem var(--body);padding:7px 9px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:var(--band-ink);min-width:0;width:190px}
+.hdr-fields input[type=date]{width:160px}
+main .wrap{padding-block:22px 48px;display:grid;gap:22px}
+section{min-width:0}
+h2{font-family:var(--display);font-weight:600;font-size:1.35rem;letter-spacing:.02em;margin:0 0 10px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+h2 small{font-family:var(--body);font-weight:400;font-size:.88rem;color:var(--muted);letter-spacing:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:22px}
+@media (max-width:900px){.top{grid-template-columns:1fr}}
+.drop{border:2px dashed var(--input-line);background:var(--input);border-radius:8px;padding:18px;text-align:center;cursor:pointer;display:block}
+.drop:focus-within,.drop.over{border-color:var(--accent)}
+.drop strong{font-family:var(--display);font-size:1.15rem;letter-spacing:.02em;display:block}
+.drop span{color:var(--muted);font-size:.9rem}
+.drop input{position:absolute;opacity:0;width:1px;height:1px}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.thumb{position:relative;width:96px;height:64px;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--bg)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb button{position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;border:0;background:rgba(0,0,0,.65);color:#fff;font-size:13px;line-height:1;cursor:pointer}
+.row-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+button.btn{font:600 .92rem var(--body);padding:8px 14px;border-radius:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+button.btn:hover{border-color:var(--accent)}
+button.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.btn:disabled{opacity:.5;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.status{font-size:.9rem;color:var(--muted)}
+.status.err{color:var(--bad)}
+.radio{display:flex;gap:14px;font-size:.9rem;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.assume{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px 14px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-family:var(--display);font-size:.82rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.field .in{display:flex;align-items:center;background:var(--input);border:1px solid var(--input-line);border-radius:6px;padding:0 8px}
+.field .in span{color:var(--muted);font-family:var(--mono);font-size:.85rem;white-space:nowrap}
+.field input{font:500 1rem var(--mono);border:0;background:transparent;color:var(--ink);padding:7px 4px;width:100%;min-width:0}
+.field input:focus{outline:none}
+.field .in:focus-within{border-color:var(--accent)}
+.hint{font-size:.78rem;color:var(--muted)}
+.group-label{grid-column:1/-1;font-family:var(--display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:.85rem;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:4px}
+.tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:1240px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+thead th{font-family:var(--display);font-weight:600;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface);position:sticky;top:0;vertical-align:bottom}
+thead th.inp{color:var(--straw)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
+td{font-family:var(--mono);font-size:.9rem}
+td input,td select{font:500 .9rem var(--mono);background:var(--input);border:1px solid var(--input-line);border-radius:5px;color:var(--ink);padding:5px 6px;text-align:right;width:76px}
+td input.cut{text-align:left;width:96px;font-weight:600}
+td select{width:128px;text-align:left;padding:5px 4px;font-family:var(--body);font-weight:600}
+td select.t-steer{border-color:var(--accent);color:var(--accent)}
+td select.t-heifer{border-color:var(--straw);color:var(--straw)}
+td input::placeholder{color:var(--muted);opacity:.75}
+td.empty{position:static;text-align:left;font-family:var(--body);color:var(--muted);padding:20px 12px;white-space:normal}
+td.be{font-weight:600;color:var(--accent);font-size:1rem}
+td.out{color:var(--straw);font-weight:600}
+td.pos{color:var(--good)} td.neg{color:var(--bad)}
+.flag{display:inline-block;margin-left:4px;font-family:var(--body);font-size:.72rem;font-weight:700;padding:1px 5px;border-radius:9px;border:1px solid var(--warn);color:var(--warn);vertical-align:1px}
+tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--ink)}
+tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transform:uppercase}
+.del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:1.05rem;padding:2px 6px}
+.del:hover{color:var(--bad)}
+.table-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.stat .k{font-family:var(--display);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:var(--mono);font-size:1.35rem;font-weight:600}
+.stat .n{font-size:.82rem;color:var(--muted)}
+.sens{overflow-x:auto}
+.sens table{min-width:520px}
+.sens td:first-child,.sens th:first-child{position:static}
+.sens tr.cur td{font-weight:600;color:var(--accent)}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;font-size:.92rem}
+.notes p,.notes li{max-width:65ch;margin:0 0 6px}
+.notes ul{padding-left:18px;margin:0}
+.notes code{font-family:var(--mono);font-size:.85rem}
+.saved{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.saved-item{display:flex;align-items:center;gap:8px;justify-content:space-between;border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:.9rem}
+.saved-item span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.saved-item small{color:var(--muted)}
+.saved-item .acts{display:flex;gap:6px;flex-shrink:0}
+.confirm{display:inline-flex;gap:6px;align-items:center;font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<header class="band">
+  <div class="wrap">
+    <div>
+      <h1>Cattle Breakeven Sheet</h1>
+      <p class="sub">Load a buyer's summary, set an end weight per cut, and get days on feed, out date and breakeven.</p>
+    </div>
+    <div class="hdr-fields">
+      <label for="sheetName">Buyer / sheet name<input id="sheetName" type="text" value="" placeholder="Fills in from the sheet"></label>
+      <label for="buyDate">Purchase date<input id="buyDate" type="date" value="2026-11-03"></label>
+    </div>
+  </div>
+</header>
+
+<main><div class="wrap">
+
+<div class="top">
+  <section class="panel" aria-labelledby="h-photos">
+    <h2 id="h-photos">Summary sheet photos <small>screenshots or phone pictures</small></h2>
+    <label class="drop" id="drop" for="photoInput">
+      <strong>Add pictures of the summary</strong>
+      <span>On a phone, tap to take a picture or pick one from your photos. On a computer, drag them here or paste a screenshot.</span>
+      <input id="photoInput" type="file" accept="image/*" multiple>
+    </label>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="radio" role="radiogroup" aria-label="When reading photos">
+      <label><input type="radio" name="readMode" value="replace" id="modeReplace" checked> Replace the cut list</label>
+      <label><input type="radio" name="readMode" value="add" id="modeAdd"> Add to the cut list</label>
+    </div>
+    <div class="row-btns">
+      <button class="btn primary" id="readBtn" disabled>Read cuts from photos</button>
+      <button class="btn" id="stopBtn" hidden>Stop</button>
+      <span class="status" id="readStatus">Add a picture to read it.</span>
+    </div>
+
+    <h2 style="margin-top:20px" id="h-saved">Saved sheets <small>kept in this browser</small></h2>
+    <div class="row-btns" style="margin-top:0">
+      <button class="btn" id="saveBtn">Save this sheet</button>
+      <button class="btn" id="newBtn">Start a blank sheet</button>
+      <span class="status" id="saveStatus"></span>
+    </div>
+    <div class="saved" id="savedList"></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-assume">
+    <h2 id="h-assume">Assumptions <small>change these as feed and markets move</small></h2>
+    <div class="assume">
+      <div class="group-label">Gain</div>
+      <div class="field"><label for="adgSteer">Steer gain / day</label><div class="in"><input id="adgSteer" type="number" step="0.05" value="2.00"><span>lb</span></div><span class="hint">Applies 300–875 lb</span></div>
+      <div class="field"><label for="adgHeifer">Heifer gain / day</label><div class="in"><input id="adgHeifer" type="number" step="0.05" value="1.80"><span>lb</span></div><span class="hint">Cuts ending in X</span></div>
+      <div class="field"><label for="endSteer">Default steer end wt</label><div class="in"><input id="endSteer" type="number" step="5" value="875"><span>lb</span></div></div>
+      <div class="field"><label for="endHeifer">Default heifer end wt</label><div class="in"><input id="endHeifer" type="number" step="5" value="800"><span>lb</span></div></div>
+      <div class="field"><label for="rangeLo">Steer range low</label><div class="in"><input id="rangeLo" type="number" step="5" value="300"><span>lb</span></div></div>
+      <div class="field"><label for="rangeHi">Steer range high</label><div class="in"><input id="rangeHi" type="number" step="5" value="875"><span>lb</span></div></div>
+
+      <div class="group-label">Costs</div>
+      <div class="field"><label for="cog">Cost of gain</label><div class="in"><span>$</span><input id="cog" type="number" step="0.01" value="1.00"><span>/lb</span></div><span class="hint">Feed, pasture, care per lb gained</span></div>
+      <div class="field"><label for="yardage">Yardage</label><div class="in"><span>$</span><input id="yardage" type="number" step="0.05" value="0.00"><span>/hd/day</span></div><span class="hint">Leave 0 if in cost of gain</span></div>
+      <div class="field"><label for="vet">Vet &amp; processing</label><div class="in"><span>$</span><input id="vet" type="number" step="1" value="25"><span>/hd</span></div></div>
+      <div class="field"><label for="sell">Selling &amp; freight out</label><div class="in"><span>$</span><input id="sell" type="number" step="1" value="35"><span>/hd</span></div></div>
+      <div class="field"><label for="interest">Interest rate</label><div class="in"><input id="interest" type="number" step="0.25" value="8.0"><span>%/yr</span></div></div>
+      <div class="field"><label for="death">Death loss</label><div class="in"><input id="death" type="number" step="0.25" value="1.5"><span>%</span></div></div>
+      <div class="field"><label for="shrink">Shrink at sale</label><div class="in"><input id="shrink" type="number" step="0.5" value="2.0"><span>%</span></div></div>
+    </div>
+  </section>
+</div>
+
+<section aria-labelledby="h-cuts">
+  <h2 id="h-cuts">Buyer cuts <small>gold columns are yours to edit; blank gain or end weight uses the defaults</small></h2>
+  <div class="tablebox">
+    <table id="cutTable">
+      <thead>
+        <tr>
+          <th class="inp">Cut</th><th class="inp">Type</th><th class="inp">Hd</th><th class="inp">Avg Wt</th><th class="inp">$/cwt</th><th class="inp">Pen Total $</th><th class="inp" title="Buyer commission, trucking and other charges for the pen">Extra $</th>
+          <th>Cost/Hd</th><th class="inp">Gain/Day</th><th class="inp">End Wt</th><th>Days</th><th>Out Date</th><th>Lbs Gain</th><th>Gain $/Hd</th><th>Total $/Hd</th><th>Breakeven $/cwt</th><th class="inp">Sale $/cwt</th><th>± $/Hd</th><th><span hidden>Remove</span></th>
+        </tr>
+      </thead>
+      <tbody id="cutBody"></tbody>
+      <tfoot id="cutFoot"></tfoot>
+    </table>
+  </div>
+  <div class="table-actions">
+    <button class="btn" id="addRow">Add a cut</button>
+    <button class="btn" id="csvBtn" hidden>Download as spreadsheet (CSV)</button>
+    <button class="btn" id="copyBtn">Copy table</button>
+    <span class="status" id="tableStatus"></span>
+  </div>
+</section>
+
+<section aria-labelledby="h-sum">
+  <h2 id="h-sum">Whole purchase</h2>
+  <div class="summary" id="summary"></div>
+</section>
+
+<section class="panel" aria-labelledby="h-sens">
+  <h2 id="h-sens">If feed costs move <small>head-weighted breakeven at different costs of gain</small></h2>
+  <div class="sens"><table id="sensTable"></table></div>
+</section>
+
+<section class="panel" aria-labelledby="h-method">
+  <h2 id="h-method">How the numbers are figured</h2>
+  <div class="notes">
+    <div>
+      <ul>
+        <li><b>Cost/Hd</b> = (Pen Total + Extra) ÷ Hd. If Pen Total is blank it uses Hd × Avg Wt × $/cwt.</li>
+        <li><b>Days</b> = (End Wt − Avg Wt) ÷ Gain/Day, rounded up. <b>Out Date</b> = purchase date + days.</li>
+        <li><b>Gain $</b> = lbs gained × cost of gain, plus yardage × days.</li>
+        <li><b>Interest</b> on the cattle and vet for the full period, and on half the gain cost (it is spent gradually).</li>
+      </ul>
+    </div>
+    <div>
+      <ul>
+        <li><b>Death loss</b> = death % × (cattle cost + half the gain cost), the extension-service method.</li>
+        <li><b>Breakeven $/cwt</b> = Total $/Hd ÷ pay weight × 100, where pay weight = End Wt less shrink.</li>
+        <li><b>± $/Hd</b> shows only when you enter an expected sale price.</li>
+        <li>Steers outside the steer weight range are flagged, because the default gain may not hold there.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</div></main>
+
+<script>
+(function(){
+const $ = id => document.getElementById(id);
+const SET_IDS = ["adgSteer","adgHeifer","endSteer","endHeifer","rangeLo","rangeHi","cog","yardage","vet","sell","interest","death","shrink"];
+const DRAFT_KEY = "be.draft.v1", SAVED_KEY = "be.saved.v1";
+const store = {
+  get(k){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+};
+
+let uid = 1;
+const mk = (cut,head,inWt,price,total,extra) => ({id:uid++,cut,head,inWt,price,total,extra:extra||0,sex:"auto",adg:"",endWt:"",sale:""});
+let rows = [];
+
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : NaN; };
+const S = () => { const o = {}; SET_IDS.forEach(id => o[id] = num($(id).value)); return o; };
+const fmt = (n,d=2) => isFinite(n) ? n.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
+const isHeifer = r => r.sex === "H" || (r.sex === "auto" && /x\s*$/i.test(String(r.cut||"")));
+
+function outDate(days){
+  const v = $("buyDate").value;
+  if(!v || !isFinite(days)) return "—";
+  const [y,m,d] = v.split("-").map(Number);
+  const dt = new Date(Date.UTC(y,m-1,d) + days*86400000);
+  return dt.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
+}
+
+function calc(r, s, cogOverride){
+  const cog = cogOverride != null ? cogOverride : s.cog;
+  const head = num(r.head), inWt = num(r.inWt), price = num(r.price);
+  let total = num(r.total);
+  if(!isFinite(total) && head>0 && inWt>0 && price>0) total = head*inWt*price/100;
+  const extra = num(r.extra) || 0;
+  const heifer = isHeifer(r);
+  const adg = isFinite(num(r.adg)) && num(r.adg)>0 ? num(r.adg) : (heifer ? s.adgHeifer : s.adgSteer);
+  const endWt = isFinite(num(r.endWt)) && num(r.endWt)>0 ? num(r.endWt) : (heifer ? s.endHeifer : s.endSteer);
+  const out = {heifer, adg, endWt, adgDefault: !(num(r.adg)>0), endDefault: !(num(r.endWt)>0)};
+  if(!(head>0) || !isFinite(total) || !(inWt>0)) return {...out, ok:false};
+  const cost = (total+extra)/head;
+  const gain = Math.max(0, endWt - inWt);
+  const days = adg>0 ? Math.ceil(gain/adg) : NaN;
+  const feed = gain*cog + (s.yardage||0)*days;
+  const rate = (s.interest||0)/100, yr = days/365;
+  const interest = (cost + (s.vet||0))*rate*yr + feed*0.5*rate*yr;
+  const death = (s.death||0)/100*(cost + 0.5*feed);
+  const tot = cost + (s.vet||0) + feed + interest + death + (s.sell||0);
+  const payWt = endWt*(1-(s.shrink||0)/100);
+  const be = payWt>0 ? tot/payWt*100 : NaN;
+  const sale = num(r.sale);
+  const profit = sale>0 ? sale*payWt/100 - tot : NaN;
+  const outRange = !heifer && (inWt < s.rangeLo || endWt > s.rangeHi);
+  return {...out, ok:true, head, cost, gain, days, feed, interest, death, tot, payWt, be, profit, outRange, inWt, priceCwt: cost/inWt*100};
+}
+
+function cellInput(r, key, cls, ph, step){
+  const v = r[key] === "" || r[key] == null || (typeof r[key]==="number" && !isFinite(r[key])) ? "" : r[key];
+  return `<input id="r${r.id}-${key}" data-id="${r.id}" data-k="${key}" class="${cls||""}" ${key==="cut"?'type="text"':'type="number" step="'+(step||"any")+'"'} value="${String(v).replace(/"/g,"&quot;")}" placeholder="${ph||""}" aria-label="${key}">`;
+}
+
+function renderBody(){
+  const s = S();
+  $("cutBody").innerHTML = rows.map(r => {
+    const c = calc(r,s);
+    const sel = `<select id="r${r.id}-sex" data-id="${r.id}" data-k="sex" aria-label="Type" class="${c.heifer?"t-heifer":"t-steer"}">
+      <option value="auto"${r.sex==="auto"?" selected":""}>${c.heifer?"Heifer (auto)":"Steer (auto)"}</option>
+      <option value="S"${r.sex==="S"?" selected":""}>Steer</option>
+      <option value="H"${r.sex==="H"?" selected":""}>Heifer</option></select>`;
+    return `<tr data-row="${r.id}">
+      <td>${cellInput(r,"cut","cut","Cut")}</td>
+      <td>${sel}</td>
+      <td>${cellInput(r,"head","","0","1")}</td>
+      <td>${cellInput(r,"inWt","","lb","1")}</td>
+      <td>${cellInput(r,"price","","0.00","0.01")}</td>
+      <td>${cellInput(r,"total","","auto","0.01")}</td>
+      <td>${cellInput(r,"extra","","0","0.01")}</td>
+      <td data-o="cost"></td>
+      <td>${cellInput(r,"adg","",fmt(c.adg),"0.05")}</td>
+      <td>${cellInput(r,"endWt","",String(c.endWt),"5")}</td>
+      <td data-o="days"></td><td class="out" data-o="date"></td><td data-o="gain"></td><td data-o="feed"></td><td data-o="tot"></td><td class="be" data-o="be"></td>
+      <td>${cellInput(r,"sale","","—","0.25")}</td>
+      <td data-o="profit"></td>
+      <td><button class="del" data-del="${r.id}" aria-label="Remove ${r.cut||"cut"}">✕</button></td>
+    </tr>`;
+  }).join("") || `<tr><td class="empty" colspan="19">No cuts yet. Add a picture of a buyer's summary sheet above, or tap <b>Add a cut</b> to type one in.</td></tr>`;
+  update();
+}
+
+function update(){
+  const s = S();
+  let H=0, inLbs=0, cost=0, tot=0, pay=0, gainLbs=0, feed=0, days=0, profit=0, profitHd=0, latest=0, earliest=Infinity;
+  rows.forEach(r => {
+    const tr = document.querySelector(`tr[data-row="${r.id}"]`); if(!tr) return;
+    const c = calc(r,s);
+    const set = (k,v) => { const el = tr.querySelector(`[data-o="${k}"]`); if(el) el.innerHTML = v; };
+    const adgIn = $(`r${r.id}-adg`), endIn = $(`r${r.id}-endWt`);
+    if(adgIn) adgIn.placeholder = fmt(c.adg);
+    if(endIn) endIn.placeholder = String(c.endWt);
+    const autoOpt = tr.querySelector('option[value="auto"]'); if(autoOpt) autoOpt.textContent = c.heifer ? "Heifer (auto)" : "Steer (auto)";
+    const selEl = tr.querySelector('select[data-k="sex"]'); if(selEl) selEl.className = c.heifer ? "t-heifer" : "t-steer";
+    if(!c.ok){ ["cost","days","date","gain","feed","tot","be","profit"].forEach(k=>set(k,"—")); return; }
+    set("cost", fmt(c.cost));
+    set("days", c.gain<=0 ? "0" : fmt(c.days,0));
+    set("date", c.gain<=0 ? "Now" : outDate(c.days));
+    set("gain", fmt(c.gain,0));
+    set("feed", fmt(c.feed));
+    set("tot", fmt(c.tot));
+    set("be", fmt(c.be) + (c.outRange ? `<span class="flag" title="Outside the steer weight range for the default gain">range</span>` : ""));
+    const pt = tr.querySelector('[data-o="profit"]');
+    pt.className = isFinite(c.profit) ? (c.profit>=0?"pos":"neg") : "";
+    pt.textContent = isFinite(c.profit) ? (c.profit>=0?"+":"") + fmt(c.profit) : "—";
+    H += c.head; inLbs += c.inWt*c.head; cost += c.cost*c.head; tot += c.tot*c.head; pay += c.payWt*c.head;
+    gainLbs += c.gain*c.head; feed += c.feed*c.head; days += c.days*c.head;
+    if(isFinite(c.profit)){ profit += c.profit*c.head; profitHd += c.head; }
+    if(c.gain>0){ latest = Math.max(latest,c.days); earliest = Math.min(earliest,c.days); }
+  });
+  const be = pay>0 ? tot/pay*100 : NaN;
+  $("cutFoot").innerHTML = H ? `<tr><td>Totals</td><td></td><td>${fmt(H,0)}</td><td>${fmt(inLbs/H,0)}</td><td>${fmt(cost/inLbs*100)}</td><td>${fmt(cost,2)}</td><td></td>
+    <td>${fmt(cost/H)}</td><td></td><td>${fmt(pay/H/(1-(s.shrink||0)/100),0)}</td><td>${fmt(days/H,0)}</td><td></td><td>${fmt(gainLbs/H,0)}</td><td>${fmt(feed/H)}</td><td>${fmt(tot/H)}</td><td class="be">${fmt(be)}</td><td></td>
+    <td class="${profitHd? (profit>=0?"pos":"neg"):""}">${profitHd ? (profit>=0?"+":"")+fmt(profit/profitHd) : "—"}</td><td></td></tr>` : "";
+  $("summary").innerHTML = H ? [
+    ["Head", fmt(H,0), `${rows.length} cuts · avg ${fmt(inLbs/H,0)} lb in`],
+    ["Cattle invested", "$"+fmt(cost,0), `$${fmt(cost/inLbs*100)}/cwt delivered`],
+    ["Total cost to sell", "$"+fmt(tot,0), `$${fmt(tot/H)} per head`],
+    ["Breakeven", "$"+fmt(be), "per cwt pay weight, head-weighted"],
+    ["Out window", earliest<Infinity ? outDate(earliest) : "—", earliest<Infinity ? `through ${outDate(latest)}` : "No gain set"],
+    ["Expected ±", profitHd ? (profit>=0?"+$":"−$")+fmt(Math.abs(profit),0) : "—", profitHd ? `on ${fmt(profitHd,0)} hd with a sale price` : "Enter sale $/cwt per cut"]
+  ].map(([k,v,n]) => `<div class="stat"><span class="k">${k}</span><span class="v">${v}</span><span class="n">${n}</span></div>`).join("") : `<div class="stat"><span class="k">No cuts yet</span><span class="n">Add a picture or a cut to see totals.</span></div>`;
+  renderSens(s);
+  saveDraft();
+}
+
+function renderSens(s){
+  const base = Math.round((s.cog||0)*100)/100;
+  const steps = [-0.20,-0.10,0,0.10,0.20].map(d => Math.max(0, Math.round((base+d)*100)/100));
+  const cuts = rows.map(r => ({r, cs: steps.map(cg => calc(r,s,cg))})).filter(x => x.cs[0].ok);
+  const pen = steps.map((_,i) => { let t=0,p=0; cuts.forEach(x=>{ const c=x.cs[i]; t+=c.tot*c.head; p+=c.payWt*c.head; }); return p? t/p*100 : NaN; });
+  $("sensTable").innerHTML = `<thead><tr><th>Cost of gain</th>${cuts.map(x=>`<th>${(x.r.cut||"—").replace(/</g,"&lt;")}</th>`).join("")}<th>All cuts</th></tr></thead>
+    <tbody>${steps.map((cg,i)=>`<tr class="${i===2?"cur":""}"><td>$${fmt(cg)}/lb${i===2?" (now)":""}</td>${cuts.map(x=>`<td>${fmt(x.cs[i].be)}</td>`).join("")}<td>${fmt(pen[i])}</td></tr>`).join("")}</tbody>`;
+}
+
+/* --- editing --- */
+$("cutBody").addEventListener("input", e => {
+  const t = e.target, id = +t.dataset.id, k = t.dataset.k; if(!k) return;
+  const r = rows.find(x => x.id===id); if(!r) return;
+  r[k] = t.value;
+  update();
+});
+$("cutBody").addEventListener("change", e => { if(e.target.dataset.k === "sex"){ const r = rows.find(x=>x.id===+e.target.dataset.id); r.sex = e.target.value; update(); } });
+$("cutBody").addEventListener("click", e => {
+  const id = e.target.dataset && e.target.dataset.del; if(!id) return;
+  rows = rows.filter(r => r.id !== +id); renderBody();
+});
+$("addRow").onclick = () => { rows.push(mk("",NaN,NaN,NaN,NaN,0)); rows[rows.length-1].head=""; rows[rows.length-1].inWt=""; rows[rows.length-1].price=""; rows[rows.length-1].total=""; renderBody(); const last = rows[rows.length-1]; const el = $(`r${last.id}-cut`); if(el) el.focus(); };
+SET_IDS.concat(["buyDate"]).forEach(id => $(id).addEventListener("input", () => { if(id==="adgSteer"||id==="adgHeifer"||id==="endSteer"||id==="endHeifer") update(); else update(); }));
+$("sheetName").addEventListener("input", saveDraft);
+
+/* --- table export --- */
+function tableRows(){
+  const s = S();
+  const head = ["Cut","Type","Head","Avg Wt","$/cwt","Pen Total","Extra","Cost/Hd","Gain/Day","End Wt","Days","Out Date","Lbs Gain","Gain $/Hd","Total $/Hd","Breakeven $/cwt","Sale $/cwt","+/- $/Hd"];
+  const body = rows.map(r => { const c = calc(r,s); return [r.cut, c.heifer?"Heifer":"Steer", r.head, r.inWt, r.price, r.total, r.extra, c.ok?c.cost.toFixed(2):"", c.adg, c.endWt, c.ok?c.days:"", c.ok?outDate(c.days):"", c.ok?c.gain:"", c.ok?c.feed.toFixed(2):"", c.ok?c.tot.toFixed(2):"", c.ok?c.be.toFixed(2):"", r.sale, c.ok&&isFinite(c.profit)?c.profit.toFixed(2):""]; });
+  return [head, ...body];
+}
+$("copyBtn").onclick = async () => {
+  const txt = tableRows().map(r => r.join("\t")).join("\n");
+  try{ await navigator.clipboard.writeText(txt); $("tableStatus").textContent = "Copied. Paste into Excel or Sheets."; }
+  catch(e){ $("tableStatus").textContent = "Copy was blocked here. Use the spreadsheet download instead."; }
+};
+function csvText(){ return tableRows().map(r => r.map(v => { const t = String(v==null?"":v); return /[",\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t; }).join(",")).join("\n"); }
+function csvName(){ return (($("sheetName").value || "breakeven").replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-") || "breakeven") + ".csv"; }
+$("csvBtn").hidden = false;
+$("csvBtn").onclick = async () => {
+  try{
+    const dl = window.claude && await claude.use("downloads");
+    if(dl){ await dl.save({filename: csvName(), data: csvText()}); $("tableStatus").textContent = "Spreadsheet saved."; return; }
+  }catch(e){}
+  const url = URL.createObjectURL(new Blob([csvText()], {type:"text/csv"}));
+  const a = document.createElement("a"); a.href = url; a.download = csvName(); document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  $("tableStatus").textContent = "Spreadsheet downloaded.";
+};
+
+/* --- photos --- */
+let photos = [];
+let sampleFn = null, maxImages = 5, ocrOK = false;
+function renderThumbs(keepStatus){
+  $("thumbs").innerHTML = photos.map((p,i) => `<div class="thumb"><img src="${p.url}" alt="Summary photo ${i+1}"><button data-rm="${i}" aria-label="Remove photo ${i+1}">✕</button></div>`).join("");
+  $("readBtn").disabled = !photos.length || !(sampleFn || ocrOK);
+  if(!(sampleFn || ocrOK) || keepStatus) return;
+  $("readStatus").className = "status";
+  $("readStatus").textContent = photos.length ? `${photos.length} picture${photos.length>1?"s":""} ready.` : "Add a picture to read it.";
+}
+function addFiles(list){
+  [...list].filter(f => /^image\//.test(f.type)).forEach(f => photos.push({file:f, url:URL.createObjectURL(f)}));
+  photos = photos.slice(0, maxImages);
+  renderThumbs();
+}
+$("photoInput").addEventListener("change", e => { addFiles(e.target.files); e.target.value = ""; });
+$("thumbs").addEventListener("click", e => { const i = e.target.dataset.rm; if(i==null) return; URL.revokeObjectURL(photos[i].url); photos.splice(+i,1); renderThumbs(); });
+const drop = $("drop");
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => addFiles(e.dataTransfer.files));
+document.addEventListener("paste", e => { const files = [...(e.clipboardData?.items||[])].filter(i=>i.kind==="file").map(i=>i.getAsFile()).filter(Boolean); if(files.length){ addFiles(files); } });
+
+const PROMPT = `These images are livestock auction buyer summary sheets ("SUMMARY" / "Buyer's Totals"). Each row is one buyer cut (BuyerCut column, for example "JOSH-61" or "SMITH-4X").
+Read every data row from every image. Skip header and totals lines. If the same cut appears twice, include it once.
+Columns usually are: BuyerCut, Tot Hd, Avg.Wt, Tot Wt, Avg.P/cwt, Avg.P/Hd, Byr Com, Trk, Chg, Total.
+Also find the buyer's name and the sale or purchase date if the sheet shows them (a header, title line, or date stamp). If no buyer name is printed, use the shared letters before the dash in the cut names (for "JOSH-5" and "JOSH-61" that is "JOSH"). If no date is printed, use null.
+Reply with only one JSON object:
+{"buyer":"JOSH","saleDate":"2026-11-03","rows":[{"cut":"JOSH-5","head":23,"avgWt":540,"priceCwt":347.86,"total":43238.50,"com":0,"trk":0,"chg":0}]}
+saleDate must be YYYY-MM-DD or null. Use numbers, not strings, for every row field except cut. Copy the cut name exactly, including any trailing X. Use 0 for blank charge columns and null for anything you cannot read.`;
+
+const toISO = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+function applyHeader(data, got, replace){
+  let buyer = data && typeof data.buyer === "string" ? data.buyer.trim() : "";
+  if(!buyer){ const pre = got.map(g => g.cut.split("-")[0].trim()).filter(Boolean); buyer = pre.length && pre.every(p => p === pre[0]) ? pre[0] : ""; }
+  let date = data && /^\d{4}-\d{2}-\d{2}$/.test(String(data.saleDate||"")) ? data.saleDate : "";
+  let dateNote = "from the sheet";
+  if(!date){
+    const mods = photos.map(p => p.file.lastModified).filter(Boolean);
+    date = toISO(mods.length ? new Date(Math.max(...mods)) : new Date());
+    dateNote = mods.length ? "from the picture's date" : "set to today";
+  }
+  if(replace || !$("buyDate").value) $("buyDate").value = date;
+  if(replace || !$("sheetName").value.trim()){
+    const [y,m,d] = date.split("-").map(Number);
+    const pretty = new Date(Date.UTC(y,m-1,d)).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"});
+    $("sheetName").value = (buyer ? buyer + " – " : "") + pretty;
+  }
+  return dateNote;
+}
+
+function applyCuts(header, got, flagged){
+  if(!got.length){ $("readStatus").className = "status err"; $("readStatus").textContent = "No cuts were found. Try a sharper, straight-on picture with the whole table in view."; return; }
+  const replace = $("modeReplace").checked;
+  const dateNote = applyHeader(header, got, replace);
+  if(replace) rows = got;
+  else got.forEach(g => { const i = rows.findIndex(r => String(r.cut).toUpperCase() === g.cut.toUpperCase()); if(i>=0){ g.adg = rows[i].adg; g.endWt = rows[i].endWt; g.sale = rows[i].sale; rows[i] = g; } else rows.push(g); });
+  renderBody();
+  $("readStatus").className = "status";
+  $("readStatus").textContent = `Read ${got.length} cut${got.length>1?"s":""}; purchase date ${dateNote}. ` + (flagged.length ? `Numbers don't add up for ${flagged.join(", ")}; check those against the sheet.` : "Check the numbers against the sheet.");
+}
+
+/* On-device reader for when the page is not opened in Claude (for example on GitHub Pages) */
+function loadTesseract(){
+  return window.Tesseract ? Promise.resolve() : new Promise((res, rej) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+    sc.onload = res; sc.onerror = () => rej(new Error("load"));
+    document.head.appendChild(sc);
+  });
+}
+async function prepImage(file){
+  const url = URL.createObjectURL(file);
+  const img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = url; });
+  const scale = Math.min(3, Math.max(1, 2400 / img.naturalWidth));
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.naturalWidth*scale); c.height = Math.round(img.naturalHeight*scale);
+  const g = c.getContext("2d");
+  g.drawImage(img, 0, 0, c.width, c.height);
+  URL.revokeObjectURL(url);
+  const d = g.getImageData(0, 0, c.width, c.height), px = d.data;
+  for(let k=0; k<px.length; k+=4){ const y = 0.3*px[k] + 0.59*px[k+1] + 0.11*px[k+2]; const v = y > 165 ? 255 : (y < 90 ? 0 : (y-90)*3.4); px[k]=px[k+1]=px[k+2]=v; }
+  g.putImageData(d, 0, 0);
+  return c;
+}
+function parseSheet(text){
+  const got = [], flagged = [], seen = new Set();
+  let saleDate = null;
+  const dm = text.match(/\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/);
+  if(dm){ let y = +dm[3]; if(y < 100) y += 2000; const m = +dm[1], d = +dm[2];
+    if(m>=1 && m<=12 && d>=1 && d<=31 && y>2000) saleDate = `${y}-${String(m).padStart(2,"0")}-${String(d).padStart(2,"0")}`; }
+  text.split(/\r?\n/).forEach(line => {
+    const L = line.replace(/[|\[\]{}]/g, " ").replace(/(\d),(\d{3})/g, "$1$2").trim();
+    const m = L.match(/^(\S*[A-Za-z]\S*)\s+(.+)$/);
+    if(!m) return;
+    const cut = m[1].replace(/[^A-Za-z0-9\-]/g, "").toUpperCase();
+    if(!cut || /^(BUYER|TOTAL|SUMMARY|AVG)/.test(cut) || seen.has(cut)) return;
+    const n = (m[2].replace(/[Oo]/g, "0").replace(/[lI]/g, "1").match(/\d+(?:\.\d+)?/g) || []).map(Number);
+    if(n.length < 6) return;
+    const head = n[0], avgWt = n[1], totWt = n[2], price = n[3], total = n[n.length-1];
+    const extra = n.length >= 9 ? n[5] + n[6] + n[7] : 0;
+    seen.add(cut);
+    const r = mk(cut, head, avgWt, price, total, extra);
+    const wtOff = Math.abs(head*avgWt - totWt) > 0.03*totWt;
+    const totOff = Math.abs(totWt*price/100 - total) > 0.02*total && Math.abs(totWt*price/100 + extra - total) > 0.02*total;
+    if(wtOff || totOff || !Number.isInteger(head)) flagged.push(cut);
+    got.push(r);
+  });
+  return {header: {buyer: "", saleDate}, got, flagged};
+}
+async function readOCR(){
+  $("readBtn").disabled = true;
+  const say = t => { $("readStatus").className = "status"; $("readStatus").textContent = t; };
+  try{
+    say("Loading the picture reader (first time takes a moment)…");
+    await loadTesseract();
+    const worker = await Tesseract.createWorker("eng");
+    await worker.setParameters({tessedit_pageseg_mode: "6", preserve_interword_spaces: "1"});
+    let text = "";
+    for(let i=0; i<photos.length; i++){
+      say(`Reading picture ${i+1} of ${photos.length}…`);
+      const c = await prepImage(photos[i].file);
+      const r = await worker.recognize(c);
+      text += "\n" + r.data.text;
+    }
+    await worker.terminate();
+    const {header, got, flagged} = parseSheet(text);
+    applyCuts(header, got, flagged);
+  }catch(e){
+    $("readStatus").className = "status err";
+    $("readStatus").textContent = "The picture reader couldn't load or read this picture. Check your connection, or type the cuts in.";
+  }finally{
+    renderThumbs(true);
+  }
+}
+
+let ctl = null;
+$("readBtn").onclick = async () => {
+  if(!photos.length) return;
+  if(!sampleFn){ if(ocrOK) readOCR(); return; }
+  ctl = new AbortController();
+  $("readBtn").disabled = true; $("stopBtn").hidden = false;
+  $("readStatus").className = "status"; $("readStatus").textContent = "Reading the sheet… this can take up to a minute.";
+  try{
+    const data = await sampleFn.json(PROMPT, {images: photos.map(p=>p.file), signal: ctl.signal});
+    const list = Array.isArray(data) ? data : (data && Array.isArray(data.rows) ? data.rows : []);
+    const header = Array.isArray(data) ? {} : data;
+    const got = list.filter(o => o && o.cut).map(o => {
+      const r = mk(String(o.cut).trim(), num(o.head), num(o.avgWt), num(o.priceCwt), num(o.total), (num(o.com)||0)+(num(o.trk)||0)+(num(o.chg)||0));
+      ["head","inWt","price","total"].forEach(k => { if(!isFinite(r[k])) r[k] = ""; });
+      return r;
+    });
+    applyCuts(header, got, []);
+  }catch(e){
+    const code = e && e.code;
+    $("readStatus").className = code==="cancelled" ? "status" : "status err";
+    $("readStatus").textContent = ({
+      cancelled:"Stopped.",
+      not_granted:"Reading pictures needs your OK to use Claude. You can still type cuts in.",
+      sampling_disabled:"Picture reading isn't available on this account. Type cuts in instead.",
+      images_unavailable:"Picture reading isn't available here. Type cuts in instead.",
+      image_rejected:"That picture couldn't be read. Try a JPG or PNG under 20 MB.",
+      rate_limited:"Too many reads right now. Wait a bit and try again.",
+      invalid_json:"The sheet came back unclear. Try again or use a sharper picture."
+    })[code] || "Reading failed. Try again in a moment.";
+  }finally{
+    $("stopBtn").hidden = true; ctl = null; renderThumbs(true);
+  }
+};
+$("stopBtn").onclick = () => ctl && ctl.abort();
+(async () => {
+  try{
+    const s = window.claude && await claude.use("sample");
+    const lim = s ? await s.limits().catch(()=>null) : null;
+    if(s && lim && lim.images){ sampleFn = s; maxImages = Math.min(lim.images.maxCount || 5, 10); renderThumbs(); return; }
+  }catch(e){}
+  if(!window.claude){ ocrOK = true; renderThumbs(); return; }
+  $("readStatus").textContent = "Picture reading isn't available in this view. Type cuts into the table.";
+})();
+
+/* --- save / load --- */
+function snapshot(){ const o = {}; SET_IDS.forEach(id => o[id] = $(id).value); return {name:$("sheetName").value, buyDate:$("buyDate").value, settings:o, rows: rows.map(({id,...r})=>r), savedAt: Date.now()}; }
+function restore(snap){
+  if(!snap) return;
+  $("sheetName").value = snap.name || ""; if(snap.buyDate) $("buyDate").value = snap.buyDate;
+  Object.entries(snap.settings||{}).forEach(([k,v]) => { if($(k)) $(k).value = v; });
+  rows = (snap.rows||[]).map(r => ({...r, id: uid++}));
+  renderBody();
+}
+let draftTimer;
+function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(() => store.set(DRAFT_KEY, snapshot()), 400); }
+function renderSaved(){
+  const saved = store.get(SAVED_KEY) || {};
+  const names = Object.keys(saved).sort((a,b) => saved[b].savedAt - saved[a].savedAt);
+  $("savedList").innerHTML = names.length ? names.map(n => {
+    const s = saved[n], hd = (s.rows||[]).reduce((a,r)=>a+(num(r.head)||0),0);
+    return `<div class="saved-item"><span>${n.replace(/</g,"&lt;")} <small>· ${hd} hd · ${new Date(s.savedAt).toLocaleDateString("en-US",{month:"short",day:"numeric"})}</small></span>
+      <span class="acts"><button class="btn" data-load="${encodeURIComponent(n)}">Open</button><button class="btn" data-ask="${encodeURIComponent(n)}">Delete</button></span></div>`;
+  }).join("") : `<span class="status">Saved sheets show up here.</span>`;
+}
+$("saveBtn").onclick = () => {
+  const name = ($("sheetName").value || "").trim() || "Untitled sheet";
+  const saved = store.get(SAVED_KEY) || {};
+  saved[name] = snapshot();
+  $("saveStatus").textContent = store.set(SAVED_KEY, saved) ? `Saved "${name}".` : "This browser blocked saving.";
+  renderSaved();
+};
+$("newBtn").onclick = () => { $("sheetName").value = ""; rows = []; photos = []; renderThumbs(); renderBody(); $("saveStatus").textContent = "Blank sheet. Add pictures or cuts."; };
+$("savedList").addEventListener("click", e => {
+  const t = e.target, saved = store.get(SAVED_KEY) || {};
+  if(t.dataset.load){ restore(saved[decodeURIComponent(t.dataset.load)]); $("saveStatus").textContent = "Opened."; }
+  if(t.dataset.ask){ t.parentElement.innerHTML = `<span class="confirm">Delete? <button class="btn" data-del2="${t.dataset.ask}">Yes</button><button class="btn" data-keep="1">No</button></span>`; }
+  if(t.dataset.del2){ delete saved[decodeURIComponent(t.dataset.del2)]; store.set(SAVED_KEY, saved); renderSaved(); }
+  if(t.dataset.keep){ renderSaved(); }
+});
+
+const draft = store.get(DRAFT_KEY);
+if(draft && draft.rows) restore(draft); else renderBody();
+renderSaved();
+})();
+</script>
+
+</body>
+</html>
