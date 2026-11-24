@@ -926,13 +926,18 @@ let draftTimer;
 function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(() => store.set(DRAFT_KEY, snapshot()), 400); }
 function clearAllData(){
   if(!confirm("Clear all cuts, settings and saved sheets? This cannot be undone.")) return;
-  try{ localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(SAVED_KEY); }catch(e){}
-  rows = []; uid = 0;
-  /* Reset all settings inputs to defaults */
-  ["feed","days","buyComm","sellComm","shrink","yardage"].forEach(id => { if($(id)) $(id).value = $(id).defaultValue || ""; });
+  try{ localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(SAVED_KEY); localStorage.removeItem(SIMPLE_KEY); }catch(e){}
+  rows = []; uid = 1;
+  /* Reset assumption inputs to their default values */
+  ["adgSteer","adgHeifer","endSteer","endHeifer","rangeLo","rangeHi","cog","yardage","vet","sell","interest","death","shrink"].forEach(id => {
+    const el = $(id); if(el) el.value = el.defaultValue;
+  });
   $("sheetName").value = ""; $("buyDate").value = new Date().toISOString().split("T")[0];
+  if(typeof photos !== "undefined"){ photos.forEach(p => { try{ URL.revokeObjectURL(p.url); }catch(e){} }); photos = []; }
+  if(typeof renderThumbs === "function") renderThumbs();
   renderBody(); renderSaved();
   if(typeof simpleUpdate === "function"){ sm = simpleDefaults(); simpleFill(); simpleUpdate(); }
+  if($("saveStatus")) $("saveStatus").textContent = "Cleared. Ready for a new sheet.";
 }
 function renderSaved(){
   const saved = store.get(SAVED_KEY) || {};
