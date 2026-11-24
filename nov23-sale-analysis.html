@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Joplin Stockyards — Nov 23, 2026 Sale Analysis</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+
+<style>
+:root {
+  --bg: #f5f4f1;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #ddd9d2;
+  --fg: #1a1714;
+  --fg2: #5a534a;
+  --fg3: #8c8278;
+  --accent: #b5490a;
+  --accent2: #d4621b;
+  --str: #1d4e8f;
+  --hfr: #7a2e7e;
+  --fbul: #1a7a4a;
+  --cow: #8a6300;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #18160f; --surface: #221f17; --surface2: #2c2820;
+    --border: #3a352b; --fg: #f0ebe2; --fg2: #b8ae9f; --fg3: #7a7268;
+    --accent: #e06020; --accent2: #f07838;
+    --str: #4d8ecf; --hfr: #c070c8; --fbul: #40c070; --cow: #d4a020;
+    --shadow: 0 1px 4px rgba(0,0,0,0.3); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #18160f; --surface: #221f17; --surface2: #2c2820;
+  --border: #3a352b; --fg: #f0ebe2; --fg2: #b8ae9f; --fg3: #7a7268;
+  --accent: #e06020; --accent2: #f07838;
+  --str: #4d8ecf; --hfr: #c070c8; --fbul: #40c070; --cow: #d4a020;
+  --shadow: 0 1px 4px rgba(0,0,0,0.3); color-scheme: dark;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left,0px));
+  padding-right: max(16px, env(safe-area-inset-right,0px));
+  padding-block: 0 32px;
+}
+
+/* ── Header ── */
+.site-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px max(16px, env(safe-area-inset-left,0px));
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.site-header h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px; font-weight: 700; color: var(--fg);
+  display: flex; align-items: center; gap: 10px;
+}
+.site-header h1 span.sale-date {
+  font-size: 13px; font-weight: 500; color: var(--fg3);
+  background: var(--surface2); border-radius: 4px; padding: 2px 8px;
+}
+.theme-btn {
+  margin-left: auto; background: var(--surface2); border: 1px solid var(--border);
+  color: var(--fg2); border-radius: 6px; padding: 5px 10px;
+  cursor: pointer; font-size: 13px;
+}
+
+/* ── Summary tiles ── */
+.summary-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  padding: 20px 0 4px;
+}
+.tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 18px; flex: 1 1 150px;
+  box-shadow: var(--shadow); min-width: 0;
+}
+.tile .label { font-size: 11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--fg3); margin-bottom: 4px; }
+.tile .value { font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px; font-weight: 700; color: var(--fg); }
+.tile .sub { font-size: 12px; color: var(--fg3); margin-top: 2px; }
+.tile.str { border-left: 4px solid var(--str); }
+.tile.hfr { border-left: 4px solid var(--hfr); }
+.tile.fbul { border-left: 4px solid var(--fbul); }
+.tile.total { border-left: 4px solid var(--accent); }
+
+/* ── Nav tabs ── */
+.main-nav {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 6px; margin: 20px 0 0;
+  box-shadow: var(--shadow);
+}
+.nav-btn {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 8px 16px; border-radius: 6px;
+  border: none; cursor: pointer; transition: all .15s;
+  background: transparent; color: var(--fg2);
+}
+.nav-btn:hover { background: var(--surface2); color: var(--fg); }
+.nav-btn.active { color: white; }
+.nav-btn.str.active { background: var(--str); }
+.nav-btn.hfr.active { background: var(--hfr); }
+.nav-btn.fbul.active { background: var(--fbul); }
+.nav-btn.cow.active { background: var(--cow); }
+.nav-btn.calc.active { background: var(--accent); }
+.nav-btn.pace.active { background: #2a5020; }
+.nav-btn.cmp.active { background: #2a6060; }
+
+/* ── View toggle ── */
+.view-toggle { display: flex; gap: 6px; margin: 16px 0 12px; align-items: center; }
+.view-btn {
+  font-size: 12px; font-weight: 600; padding: 5px 12px;
+  border-radius: 20px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--fg2); cursor: pointer; transition: all .15s;
+}
+.view-btn.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.view-label { font-size: 12px; color: var(--fg3); margin-left: 4px; }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--fg3);
+  padding: 10px 12px; text-align: right;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+thead th:first-child { text-align: left; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 10px 12px; text-align: right; color: var(--fg); }
+tbody td:first-child { text-align: left; font-weight: 600; }
+tbody tr.total-row td {
+  font-weight: 700; border-top: 2px solid var(--border);
+  background: var(--surface2); font-size: 12px;
+}
+.card { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; box-shadow: var(--shadow); margin: 12px 0; }
+.section-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700; margin-bottom: 14px; color: var(--fg);
+}
+.badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 10px; margin-left: 6px;
+  background: var(--surface2); color: var(--fg3);
+}
+
+/* price range bar */
+.range-bar-wrap { display: flex; align-items: center; gap: 6px; }
+.range-bar { flex: 1; height: 6px; background: var(--surface2);
+  border-radius: 3px; min-width: 60px; position: relative; }
+.range-fill { position: absolute; height: 100%; border-radius: 3px; background: var(--str); }
+
+/* ── Chart ── */
+.chart-area { width: 100%; overflow-x: auto; }
+svg.price-chart { display: block; }
+
+/* ── Breakeven calc ── */
+.calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 600px) { .calc-grid { grid-template-columns: 1fr; } }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600;
+  letter-spacing: .04em; color: var(--fg2); margin-bottom: 5px; }
+.form-group input, .form-group select {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--border); border-radius: 7px;
+  background: var(--surface); color: var(--fg); font-size: 14px;
+  font-family: inherit;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(181,73,10,.15);
+}
+.calc-result {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px;
+}
+.result-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.result-row:last-child { border-bottom: none; }
+.result-row .r-label { font-size: 13px; color: var(--fg2); }
+.result-row .r-value { font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700; color: var(--fg); }
+.result-row.highlight .r-value { color: var(--accent); font-size: 20px; }
+.result-row.profit-pos .r-value { color: #1a7a4a; }
+.result-row.profit-neg .r-value { color: #c0303a; }
+.calc-btn {
+  width: 100%; padding: 12px; border-radius: 8px;
+  background: var(--accent); color: white; border: none;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  margin-top: 4px; transition: background .15s;
+}
+.calc-btn:hover { background: var(--accent2); }
+
+/* ── Hidden panels ── */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* responsive */
+@media (max-width: 500px) {
+  .tile .value { font-size: 20px; }
+  .nav-btn { padding: 7px 10px; font-size: 12px; }
+}
+</style>
+
+<!-- DATA -->
+<script>
+const SALE_DATA = {
+  STR: {
+    total_lots: 605, total_head: 8614, avg_cwt: 358.21, avg_hp: 2250,
+    rows: [
+      {wb:100,wb_label:"100-199",lots:3,head:5,avg_wt:182,avg_cwt:433.33,avg_hp:793,min_cwt:350,max_cwt:550},
+      {wb:200,wb_label:"200-299",lots:13,head:26,avg_wt:268,avg_cwt:503.85,avg_hp:1340,min_cwt:220,max_cwt:600},
+      {wb:300,wb_label:"300-399",lots:49,head:190,avg_wt:351,avg_cwt:432.86,avg_hp:1518,min_cwt:160,max_cwt:570},
+      {wb:400,wb_label:"400-499",lots:64,head:287,avg_wt:454,avg_cwt:410.55,avg_hp:1861,min_cwt:230,max_cwt:520},
+      {wb:500,wb_label:"500-599",lots:111,head:896,avg_wt:555,avg_cwt:383.04,avg_hp:2125,min_cwt:170,max_cwt:460},
+      {wb:600,wb_label:"600-699",lots:119,head:1283,avg_wt:649,avg_cwt:344.87,avg_hp:2239,min_cwt:150,max_cwt:425},
+      {wb:700,wb_label:"700-799",lots:101,head:1453,avg_wt:748,avg_cwt:327.21,avg_hp:2447,min_cwt:150,max_cwt:357},
+      {wb:800,wb_label:"800-899",lots:92,head:2633,avg_wt:844,avg_cwt:316.34,avg_hp:2672,min_cwt:150,max_cwt:348.5},
+      {wb:900,wb_label:"900-999",lots:36,head:1642,avg_wt:943,avg_cwt:306.12,avg_hp:2886,min_cwt:280,max_cwt:325},
+      {wb:1000,wb_label:"1000-1099",lots:14,head:195,avg_wt:1029,avg_cwt:290.00,avg_hp:2985,min_cwt:275,max_cwt:303},
+    ]
+  },
+  HFR: {
+    total_lots: 433, total_head: 4220, avg_cwt: 333.45, avg_hp: 1948,
+    rows: [
+      {wb:200,wb_label:"200-299",lots:12,head:19,avg_wt:256,avg_cwt:407.50,avg_hp:1037,min_cwt:240,max_cwt:480},
+      {wb:300,wb_label:"300-399",lots:44,head:134,avg_wt:356,avg_cwt:378.98,avg_hp:1351,min_cwt:150,max_cwt:510},
+      {wb:400,wb_label:"400-499",lots:69,head:299,avg_wt:453,avg_cwt:356.39,avg_hp:1614,min_cwt:150,max_cwt:435},
+      {wb:500,wb_label:"500-599",lots:92,head:664,avg_wt:545,avg_cwt:342.93,avg_hp:1866,min_cwt:200,max_cwt:410},
+      {wb:600,wb_label:"600-699",lots:89,head:747,avg_wt:644,avg_cwt:320.30,avg_hp:2064,min_cwt:150,max_cwt:375},
+      {wb:700,wb_label:"700-799",lots:75,head:1142,avg_wt:746,avg_cwt:311.41,avg_hp:2321,min_cwt:260,max_cwt:357},
+      {wb:800,wb_label:"800-899",lots:37,head:1004,avg_wt:841,avg_cwt:296.34,avg_hp:2492,min_cwt:250,max_cwt:331.5},
+      {wb:900,wb_label:"900-999",lots:9,head:155,avg_wt:937,avg_cwt:274.56,avg_hp:2575,min_cwt:230,max_cwt:309},
+      {wb:1000,wb_label:"1000-1099",lots:4,head:38,avg_wt:1051,avg_cwt:240.00,avg_hp:2517,min_cwt:225,max_cwt:265},
+    ]
+  },
+  FBUL: {
+    total_lots: 41, total_head: 151, avg_cwt: 350.34, avg_hp: 2027,
+    rows: [
+      {wb:200,wb_label:"200-299",lots:1,head:1,avg_wt:290,avg_cwt:470.00,avg_hp:1363,min_cwt:470,max_cwt:470},
+      {wb:300,wb_label:"300-399",lots:2,head:8,avg_wt:381,avg_cwt:460.00,avg_hp:1754,min_cwt:450,max_cwt:470},
+      {wb:400,wb_label:"400-499",lots:7,head:16,avg_wt:456,avg_cwt:407.86,avg_hp:1865,min_cwt:230,max_cwt:490},
+      {wb:500,wb_label:"500-599",lots:13,head:68,avg_wt:552,avg_cwt:359.00,avg_hp:1980,min_cwt:315,max_cwt:390},
+      {wb:600,wb_label:"600-699",lots:8,head:23,avg_wt:639,avg_cwt:328.12,avg_hp:2097,min_cwt:310,max_cwt:360},
+      {wb:700,wb_label:"700-799",lots:5,head:20,avg_wt:743,avg_cwt:303.40,avg_hp:2253,min_cwt:290,max_cwt:312},
+      {wb:800,wb_label:"800-899",lots:4,head:13,avg_wt:833,avg_cwt:277.50,avg_hp:2310,min_cwt:265,max_cwt:305},
+    ]
+  },
+  COW: { total_lots:0, total_head:0, avg_cwt:0, avg_hp:0, rows:[] },
+  BULL: { total_lots:0, total_head:0, avg_cwt:0, avg_hp:0, rows:[] }
+};
+
+// Pull COW/BULL dynamically
+const COW_LOTS = 0, COW_HEAD = 0;
+</script>
+
+<!-- MARKUP -->
+<header class="site-header">
+  <h1>🐄 Joplin Stockyards <span class="sale-date">Nov 23, 2026</span></h1>
+  <button class="theme-btn" onclick="toggleTheme()">🌙 Dark</button>
+</header>
+
+<div style="padding: 0 0">
+  <!-- Summary tiles -->
+  <div class="summary-row">
+    <div class="tile total">
+      <div class="label">Total Head</div>
+      <div class="value" id="tot-head">12,985</div>
+      <div class="sub">1,079 lots sold</div>
+    </div>
+    <div class="tile str">
+      <div class="label">Steers (STR)</div>
+      <div class="value">$358.21</div>
+      <div class="sub">8,614 head · 605 lots</div>
+    </div>
+    <div class="tile hfr">
+      <div class="label">Heifers (HFR)</div>
+      <div class="value">$333.45</div>
+      <div class="sub">4,220 head · 433 lots</div>
+    </div>
+    <div class="tile fbul">
+      <div class="label">Feeder Bulls</div>
+      <div class="value">$350.34</div>
+      <div class="sub">151 head · 41 lots</div>
+    </div>
+  </div>
+
+  <!-- Main nav -->
+  <nav class="main-nav">
+    <button class="nav-btn str active" onclick="showPanel('STR',this)">Steers</button>
+    <button class="nav-btn hfr" onclick="showPanel('HFR',this)">Heifers</button>
+    <button class="nav-btn fbul" onclick="showPanel('FBUL',this)">Feeder Bulls</button>
+    <button class="nav-btn cmp" onclick="showPanel('CMP',this)">📊 STR vs HFR</button>
+    <button class="nav-btn pace" onclick="showPanel('PACE',this)">🕐 Sale Pace</button>
+    <button class="nav-btn calc" onclick="showPanel('CALC',this)">⚖️ Breakeven Calc</button>
+  </nav>
+
+  <!-- STR panel -->
+  <div class="panel active" id="panel-STR">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('STR','table',this)">Table</button>
+      <button class="view-btn" onclick="setView('STR','chart',this)">$/cwt Chart</button>
+      <button class="view-btn" onclick="setView('STR','head',this)">$/Head Chart</button>
+      <span class="view-label">— Steers by 100 lb weight break</span>
+    </div>
+    <div class="card" id="STR-table-view">
+      <div class="section-title">Steers — Market Summary <span class="badge" style="background:#1d4e8f22;color:var(--str)">605 lots · 8,614 head</span></div>
+      <div class="table-wrap" id="STR-table"></div>
+    </div>
+    <div class="card" id="STR-chart-view" style="display:none">
+      <div class="section-title">Steers — $/cwt by Weight Break</div>
+      <div class="chart-area" id="STR-cwt-chart"></div>
+    </div>
+    <div class="card" id="STR-head-view" style="display:none">
+      <div class="section-title">Steers — $/Head by Weight Break</div>
+      <div class="chart-area" id="STR-hp-chart"></div>
+    </div>
+  </div>
+
+  <!-- HFR panel -->
+  <div class="panel" id="panel-HFR">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('HFR','table',this)">Table</button>
+      <button class="view-btn" onclick="setView('HFR','chart',this)">$/cwt Chart</button>
+      <button class="view-btn" onclick="setView('HFR','head',this)">$/Head Chart</button>
+      <span class="view-label">— Heifers by 100 lb weight break</span>
+    </div>
+    <div class="card" id="HFR-table-view">
+      <div class="section-title">Heifers — Market Summary <span class="badge" style="background:#7a2e7e22;color:var(--hfr)">433 lots · 4,220 head</span></div>
+      <div class="table-wrap" id="HFR-table"></div>
+    </div>
+    <div class="card" id="HFR-chart-view" style="display:none">
+      <div class="section-title">Heifers — $/cwt by Weight Break</div>
+      <div class="chart-area" id="HFR-cwt-chart"></div>
+    </div>
+    <div class="card" id="HFR-head-view" style="display:none">
+      <div class="section-title">Heifers — $/Head by Weight Break</div>
+      <div class="chart-area" id="HFR-hp-chart"></div>
+    </div>
+  </div>
+
+  <!-- FBUL panel -->
+  <div class="panel" id="panel-FBUL">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setView('FBUL','table',this)">Table</button>
+      <button class="view-btn" onclick="setView('FBUL','chart',this)">$/cwt Chart</button>
+      <button class="view-btn" onclick="setView('FBUL','head',this)">$/Head Chart</button>
+      <span class="view-label">— Feeder Bulls by 100 lb weight break</span>
+    </div>
+    <div class="card" id="FBUL-table-view">
+      <div class="section-title">Feeder Bulls — Market Summary <span class="badge" style="background:#1a7a4a22;color:var(--fbul)">41 lots · 151 head</span></div>
+      <div class="table-wrap" id="FBUL-table"></div>
+    </div>
+    <div class="card" id="FBUL-chart-view" style="display:none">
+      <div class="section-title">Feeder Bulls — $/cwt by Weight Break</div>
+      <div class="chart-area" id="FBUL-cwt-chart"></div>
+    </div>
+    <div class="card" id="FBUL-head-view" style="display:none">
+      <div class="section-title">Feeder Bulls — $/Head by Weight Break</div>
+      <div class="chart-area" id="FBUL-hp-chart"></div>
+    </div>
+  </div>
+
+  <!-- CMP panel -->
+  <div class="panel" id="panel-CMP">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setCmpView('table',this)">Side-by-Side Table</button>
+      <button class="view-btn" onclick="setCmpView('cwt',this)">$/cwt Overlay</button>
+      <button class="view-btn" onclick="setCmpView('hp',this)">$/Head Overlay</button>
+      <button class="view-btn" onclick="setCmpView('spread',this)">STR Premium</button>
+      <span class="view-label">— Steers vs Heifers</span>
+    </div>
+    <div class="card" id="cmp-table-view">
+      <div class="section-title">Steers vs Heifers — Side-by-Side</div>
+      <div class="table-wrap" id="cmp-table"></div>
+    </div>
+    <div class="card" id="cmp-cwt-view" style="display:none">
+      <div class="section-title">$/cwt Overlay — STR <span style="color:var(--str)">■</span> vs HFR <span style="color:var(--hfr)">■</span></div>
+      <div class="chart-area" id="cmp-cwt-chart"></div>
+    </div>
+    <div class="card" id="cmp-hp-view" style="display:none">
+      <div class="section-title">$/Head Overlay — STR <span style="color:var(--str)">■</span> vs HFR <span style="color:var(--hfr)">■</span></div>
+      <div class="chart-area" id="cmp-hp-chart"></div>
+    </div>
+    <div class="card" id="cmp-spread-view" style="display:none">
+      <div class="section-title">STR Premium over HFR ($/cwt) by Weight Break</div>
+      <div class="chart-area" id="cmp-spread-chart"></div>
+    </div>
+  </div>
+
+  <!-- PACE panel -->
+  <div class="panel" id="panel-PACE">
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="setPaceView('head',this)">Head/Hour</button>
+      <button class="view-btn" onclick="setPaceView('lots',this)">Lots/Hour</button>
+      <button class="view-btn" onclick="setPaceView('lotsize',this)">Avg Lot Size</button>
+      <span class="view-label">— Sale throughput by hour</span>
+    </div>
+    <div class="card">
+      <div class="section-title">Sale Pace — Nov 23, 2026
+        <span class="badge">5:05 AM – 7:08 PM · 14 hrs</span>
+        <span class="badge" style="background:#2a502022;color:#2a8030">930 head/hr avg</span>
+      </div>
+      <div class="chart-area" id="pace-chart"></div>
+      <div class="table-wrap" style="margin-top:16px">
+        <table id="pace-table"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALC panel -->
+  <div class="panel" id="panel-CALC">
+    <div class="card" style="margin-top:16px">
+      <div class="section-title">⚖️ Breakeven Calculator</div>
+      <p style="font-size:13px;color:var(--fg2);margin-bottom:18px;">
+        Select the weight class you plan to buy, enter your target sell weight and production inputs — the calculator tells you the $/cwt you need to break even and your projected profit or loss.
+      </p>
+      <div class="calc-grid">
+        <div>
+          <div class="form-group">
+            <label>Animal Type</label>
+            <select id="c-sex" onchange="updateBuyPriceOptions()">
+              <option value="STR">Steers (STR)</option>
+              <option value="HFR">Heifers (HFR)</option>
+              <option value="FBUL">Feeder Bulls (FBUL)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Buy Weight Break (avg market price auto-fills)</label>
+            <select id="c-wb" onchange="autoFillBuyPrice()"></select>
+          </div>
+          <div class="form-group">
+            <label>Buy Price — $/cwt</label>
+            <input type="number" id="c-buy-cwt" value="347.56" step="0.01" min="1">
+          </div>
+          <div class="form-group">
+            <label>Buy Weight — lbs (avg auto-fills)</label>
+            <input type="number" id="c-buy-wt" value="652" step="1" min="1">
+          </div>
+          <div class="form-group">
+            <label>Target Sell Weight — lbs</label>
+            <input type="number" id="c-sell-wt" value="1350" step="10" min="1">
+          </div>
+          <div class="form-group">
+            <label>Average Daily Gain — lbs/day</label>
+            <input type="number" id="c-adg" value="3.2" step="0.1" min="0.1">
+          </div>
+        </div>
+        <div>
+          <div class="form-group">
+            <label>Feed Cost — $/lb of gain</label>
+            <input type="number" id="c-feed" value="0.42" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label>Yardage / Care — $/head/day</label>
+            <input type="number" id="c-yard" value="1.75" step="0.05" min="0">
+          </div>
+          <div class="form-group">
+            <label>Annual Interest Rate — %</label>
+            <input type="number" id="c-rate" value="8.0" step="0.1" min="0">
+          </div>
+          <div class="form-group">
+            <label>Expected Sell Price — $/cwt (optional)</label>
+            <input type="number" id="c-sell-cwt" value="195" step="0.01" min="0"
+              placeholder="Leave blank to skip P&amp;L">
+          </div>
+          <button class="calc-btn" onclick="runCalc()">Calculate Breakeven</button>
+        </div>
+      </div>
+
+      <div id="calc-output" style="margin-top:20px;display:none">
+        <div class="calc-result">
+          <div class="result-row">
+            <span class="r-label">Days on Feed</span>
+            <span class="r-value" id="res-days">—</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Lbs of Gain</span>
+            <span class="r-value" id="res-gain">—</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Purchase Cost / Head</span>
+            <span class="r-value" id="res-purchase">—</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Interest on Purchase</span>
+            <span class="r-value" id="res-int-pur">—</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Feed Cost</span>
+            <span class="r-value" id="res-feed">—</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Interest on Feed</span>
+            <span class="r-value" id="res-int-feed">—</span>
+          </div>
+          <div class="result-row">
+            <span class="r-label">Yardage / Care</span>
+            <span class="r-value" id="res-yard">—</span>
+          </div>
+          <div class="result-row" style="border-top:2px solid var(--border);margin-top:4px">
+            <span class="r-label"><strong>Total Cost / Head</strong></span>
+            <span class="r-value" id="res-total">—</span>
+          </div>
+          <div class="result-row highlight">
+            <span class="r-label"><strong>Breakeven Sell Price</strong></span>
+            <span class="r-value" id="res-be">—</span>
+          </div>
+          <div class="result-row" id="res-pl-row" style="display:none">
+            <span class="r-label">Projected P&amp;L / Head</span>
+            <span class="r-value" id="res-pl">—</span>
+          </div>
+          <div class="result-row" id="res-pct-row" style="display:none">
+            <span class="r-label">Return on Investment</span>
+            <span class="r-value" id="res-pct">—</span>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--fg3);margin-top:10px;">
+          Interest calculated on purchase cost for full period + on feed cost as average balance (½ of total). All values per head.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Theme ──
+function toggleTheme() {
+  const root = document.documentElement;
+  const btn = document.querySelector('.theme-btn');
+  if (root.dataset.theme === 'dark') {
+    root.dataset.theme = 'light'; btn.textContent = '🌙 Dark';
+  } else {
+    root.dataset.theme = 'dark'; btn.textContent = '☀️ Light';
+  }
+}
+
+// ── Panel switching ──
+let currentPanel = 'STR';
+function showPanel(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPanel = id;
+  if (id !== 'CALC') renderCharts(id);
+}
+
+// ── View toggle ──
+function setView(sex, view, btn) {
+  const tbl = document.getElementById(sex + '-table-view');
+  const cht = document.getElementById(sex + '-chart-view');
+  const hd = document.getElementById(sex + '-head-view');
+  tbl.style.display = cht.style.display = hd.style.display = 'none';
+  if (view === 'table') tbl.style.display = '';
+  if (view === 'chart') { cht.style.display = ''; buildCwtChart(sex); }
+  if (view === 'head') { hd.style.display = ''; buildHpChart(sex); }
+  btn.closest('.view-toggle').querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Tables ──
+const c = (n, d=0) => '$' + n.toLocaleString('en-US', {minimumFractionDigits:d,maximumFractionDigits:d});
+const n = (v, d=0) => v.toLocaleString('en-US', {minimumFractionDigits:d,maximumFractionDigits:d});
+
+function buildTable(sex) {
+  const data = SALE_DATA[sex];
+  const rows = data.rows;
+  const color = {STR:'var(--str)',HFR:'var(--hfr)',FBUL:'var(--fbul)'}[sex] || 'var(--accent)';
+
+  // compute global min/max for range bar
+  const allMax = Math.max(...rows.map(r => r.max_cwt));
+  const allMin = Math.min(...rows.map(r => r.min_cwt));
+  const range = allMax - allMin;
+
+  let html = `<table>
+    <thead><tr>
+      <th>Weight Break</th>
+      <th>Lots</th>
+      <th>Head</th>
+      <th>Avg Wt</th>
+      <th>Avg $/cwt</th>
+      <th>Price Range</th>
+      <th>Min</th>
+      <th>Max</th>
+      <th>Avg $/Head</th>
+    </tr></thead><tbody>`;
+
+  rows.forEach(r => {
+    const pct_min = range > 0 ? (r.min_cwt - allMin) / range * 100 : 0;
+    const pct_max = range > 0 ? (r.max_cwt - allMin) / range * 100 : 100;
+    html += `<tr>
+      <td><strong>${r.wb_label}</strong></td>
+      <td>${r.lots}</td>
+      <td>${n(r.head)}</td>
+      <td>${n(r.avg_wt)} lbs</td>
+      <td style="color:${color};font-weight:700">${c(r.avg_cwt,2)}</td>
+      <td>
+        <div class="range-bar-wrap">
+          <div class="range-bar">
+            <div class="range-fill" style="left:${pct_min.toFixed(1)}%;width:${(pct_max-pct_min).toFixed(1)}%;background:${color}"></div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--fg3)">${c(r.min_cwt,2)}</td>
+      <td style="color:var(--fg3)">${c(r.max_cwt,2)}</td>
+      <td>${c(r.avg_hp)}</td>
+    </tr>`;
+  });
+
+  // totals row
+  const totalHead = rows.reduce((s,r) => s + r.head, 0);
+  const totalLots = rows.reduce((s,r) => s + r.lots, 0);
+  const wavgCwt = rows.reduce((s,r) => s + r.avg_cwt * r.head, 0) / totalHead;
+  const wavgHp = rows.reduce((s,r) => s + r.avg_hp * r.head, 0) / totalHead;
+
+  html += `<tr class="total-row">
+    <td>TOTALS</td>
+    <td>${totalLots}</td>
+    <td>${n(totalHead)}</td>
+    <td>—</td>
+    <td style="color:${color}">${c(wavgCwt,2)}</td>
+    <td></td><td></td><td></td>
+    <td>${c(wavgHp)}</td>
+  </tr></tbody></table>`;
+
+  document.getElementById(sex + '-table').innerHTML = html;
+}
+
+// ── SVG Charts ──
+function buildCwtChart(sex) {
+  const el = document.getElementById(sex + '-cwt-chart');
+  if (el.dataset.built === '1') return;
+  el.innerHTML = makeSvgChart(sex, 'avg_cwt', '$/cwt', {STR:'var(--str)',HFR:'var(--hfr)',FBUL:'var(--fbul)'}[sex]);
+  el.dataset.built = '1';
+}
+
+function buildHpChart(sex) {
+  const el = document.getElementById(sex + '-hp-chart');
+  if (el.dataset.built === '1') return;
+  el.innerHTML = makeSvgChart(sex, 'avg_hp', '$/Head', {STR:'var(--str)',HFR:'var(--hfr)',FBUL:'var(--fbul)'}[sex]);
+  el.dataset.built = '1';
+}
+
+function makeSvgChart(sex, field, yLabel, lineColor) {
+  const rows = SALE_DATA[sex].rows;
+  const W = 700, H = 320;
+  const ml = 72, mr = 24, mt = 20, mb = 56;
+  const cw = W - ml - mr, ch = H - mt - mb;
+
+  const vals = rows.map(r => r[field]);
+  const yMin = Math.floor(Math.min(...vals) * 0.9 / 10) * 10;
+  const yMax = Math.ceil(Math.max(...vals) * 1.08 / 10) * 10;
+  const xn = rows.length;
+
+  const sx = i => ml + (i / (xn - 1)) * cw;
+  const sy = v => mt + ch - ((v - yMin) / (yMax - yMin)) * ch;
+
+  // grid + Y labels
+  let svg = `<svg class="price-chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">`;
+  svg += `<rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
+
+  const yTicks = 5;
+  for (let i = 0; i <= yTicks; i++) {
+    const v = yMin + (yMax - yMin) * i / yTicks;
+    const y = sy(v);
+    svg += `<line x1="${ml}" y1="${y}" x2="${ml+cw}" y2="${y}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    const label = field === 'avg_cwt' ? '$' + v.toFixed(0) : '$' + (v/1000).toFixed(1) + 'k';
+    svg += `<text x="${ml-8}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">${label}</text>`;
+  }
+
+  // area fill
+  let area = `M ${sx(0)} ${sy(vals[0])}`;
+  for (let i = 1; i < xn; i++) area += ` C ${sx(i-0.5)} ${sy(vals[i-1])} ${sx(i-0.5)} ${sy(vals[i])} ${sx(i)} ${sy(vals[i])}`;
+  area += ` L ${sx(xn-1)} ${mt+ch} L ${sx(0)} ${mt+ch} Z`;
+  svg += `<path d="${area}" fill="${lineColor}" fill-opacity="0.1"/>`;
+
+  // line
+  let line = `M ${sx(0)} ${sy(vals[0])}`;
+  for (let i = 1; i < xn; i++) line += ` C ${sx(i-0.5)} ${sy(vals[i-1])} ${sx(i-0.5)} ${sy(vals[i])} ${sx(i)} ${sy(vals[i])}`;
+  svg += `<path d="${line}" fill="none" stroke="${lineColor}" stroke-width="2.5" stroke-linecap="round"/>`;
+
+  // dots + labels
+  rows.forEach((r, i) => {
+    const x = sx(i), y = sy(vals[i]);
+    const lbl = field === 'avg_cwt' ? '$' + vals[i].toFixed(0) : '$' + (vals[i]/1000).toFixed(1) + 'k';
+    svg += `<circle cx="${x}" cy="${y}" r="5" fill="${lineColor}" stroke="var(--surface)" stroke-width="2"/>`;
+    // alternate label above/below to avoid overlap
+    const above = i % 2 === 0;
+    svg += `<text x="${x}" y="${above ? y-10 : y+18}" text-anchor="middle" font-size="10.5" font-weight="600" fill="${lineColor}" font-family="Inter,sans-serif">${lbl}</text>`;
+  });
+
+  // X axis labels
+  rows.forEach((r, i) => {
+    svg += `<text x="${sx(i)}" y="${mt+ch+22}" text-anchor="middle" font-size="10" fill="var(--fg3)" font-family="Inter,sans-serif">${r.wb_label.replace('-','–')}</text>`;
+  });
+
+  // axis labels
+  svg += `<text x="${ml + cw/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">Weight Break (lbs)</text>`;
+  svg += `<text x="12" y="${mt+ch/2}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif" transform="rotate(-90,12,${mt+ch/2})">${yLabel}</text>`;
+
+  svg += `</svg>`;
+  return svg;
+}
+
+function renderCharts(sex) {
+  buildTable(sex);
+}
+
+// ── Breakeven Calc ──
+function updateBuyPriceOptions() {
+  const sex = document.getElementById('c-sex').value;
+  const sel = document.getElementById('c-wb');
+  const rows = SALE_DATA[sex].rows;
+  sel.innerHTML = rows.map(r =>
+    `<option value="${r.wb}" data-cwt="${r.avg_cwt}" data-wt="${r.avg_wt}">${r.wb_label} lbs · avg $${r.avg_cwt}/cwt</option>`
+  ).join('');
+  autoFillBuyPrice();
+}
+
+function autoFillBuyPrice() {
+  const sel = document.getElementById('c-wb');
+  const opt = sel.selectedOptions[0];
+  if (!opt) return;
+  document.getElementById('c-buy-cwt').value = opt.dataset.cwt;
+  document.getElementById('c-buy-wt').value = opt.dataset.wt;
+}
+
+function runCalc() {
+  const buyCwt = parseFloat(document.getElementById('c-buy-cwt').value);
+  const buyWt = parseFloat(document.getElementById('c-buy-wt').value);
+  const sellWt = parseFloat(document.getElementById('c-sell-wt').value);
+  const adg = parseFloat(document.getElementById('c-adg').value);
+  const feedCost = parseFloat(document.getElementById('c-feed').value);
+  const yardage = parseFloat(document.getElementById('c-yard').value);
+  const rate = parseFloat(document.getElementById('c-rate').value) / 100;
+  const sellCwt = parseFloat(document.getElementById('c-sell-cwt').value) || 0;
+
+  if ([buyCwt, buyWt, sellWt, adg, feedCost, yardage, rate].some(isNaN) || adg <= 0) {
+    alert('Please fill in all fields with valid numbers.'); return;
+  }
+
+  const gain = sellWt - buyWt;
+  const days = gain / adg;
+  const purchase = buyCwt * buyWt / 100;           // $/hd purchase cost
+  const intPurchase = purchase * rate * (days / 365);
+  const feedTotal = gain * feedCost;
+  const intFeed = feedTotal * rate * (days / 365) * 0.5; // avg balance = half
+  const yard = yardage * days;
+  const totalCost = purchase + intPurchase + feedTotal + intFeed + yard;
+  const bePrice = totalCost / (sellWt / 100);       // $/cwt to break even
+
+  const fmt = v => '$' + v.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2});
+
+  document.getElementById('res-days').textContent = days.toFixed(0) + ' days';
+  document.getElementById('res-gain').textContent = gain.toFixed(0) + ' lbs';
+  document.getElementById('res-purchase').textContent = fmt(purchase);
+  document.getElementById('res-int-pur').textContent = fmt(intPurchase);
+  document.getElementById('res-feed').textContent = fmt(feedTotal);
+  document.getElementById('res-int-feed').textContent = fmt(intFeed);
+  document.getElementById('res-yard').textContent = fmt(yard);
+  document.getElementById('res-total').textContent = fmt(totalCost);
+  document.getElementById('res-be').textContent = fmt(bePrice) + '/cwt';
+
+  const plRow = document.getElementById('res-pl-row');
+  const pctRow = document.getElementById('res-pct-row');
+  if (sellCwt > 0) {
+    const revenue = sellCwt * sellWt / 100;
+    const pl = revenue - totalCost;
+    const pct = (pl / purchase) * 100;
+    const plEl = document.getElementById('res-pl');
+    const pctEl = document.getElementById('res-pct');
+    plEl.textContent = (pl >= 0 ? '+' : '') + fmt(pl) + '/hd';
+    pctEl.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+    plRow.className = 'result-row ' + (pl >= 0 ? 'profit-pos' : 'profit-neg');
+    pctRow.className = 'result-row ' + (pct >= 0 ? 'profit-pos' : 'profit-neg');
+    plRow.style.display = pctRow.style.display = '';
+  } else {
+    plRow.style.display = pctRow.style.display = 'none';
+  }
+
+  document.getElementById('calc-output').style.display = '';
+}
+
+// ── Comparison panel ──
+const CMP_BREAKS = [300,400,500,600,700,800,900,1000];
+const WB_LABELS = {300:'300-399',400:'400-499',500:'500-599',600:'600-699',700:'700-799',800:'800-899',900:'900-999',1000:'1000-1099'};
+
+function getByWb(sex, wb, field) {
+  const r = SALE_DATA[sex].rows.find(r => r.wb === wb);
+  return r ? r[field] : null;
+}
+
+function buildCmpTable() {
+  const el = document.getElementById('cmp-table');
+  if (el.dataset.built === '1') return;
+  let html = `<table>
+    <thead><tr>
+      <th>Weight Break</th>
+      <th style="color:var(--str)">STR Lots</th><th style="color:var(--str)">STR Head</th>
+      <th style="color:var(--str)">STR $/cwt</th><th style="color:var(--str)">STR $/Hd</th>
+      <th style="width:12px"></th>
+      <th style="color:var(--hfr)">HFR Lots</th><th style="color:var(--hfr)">HFR Head</th>
+      <th style="color:var(--hfr)">HFR $/cwt</th><th style="color:var(--hfr)">HFR $/Hd</th>
+      <th>STR Prem.</th>
+    </tr></thead><tbody>`;
+  CMP_BREAKS.forEach(wb => {
+    const sr = SALE_DATA.STR.rows.find(r=>r.wb===wb);
+    const hr = SALE_DATA.HFR.rows.find(r=>r.wb===wb);
+    const spread = (sr && hr) ? (sr.avg_cwt - hr.avg_cwt).toFixed(2) : '—';
+    const spreadColor = spread !== '—' ? (parseFloat(spread) >= 0 ? '#1a7a4a' : '#c0303a') : 'var(--fg3)';
+    const sc = v => v != null ? c(v,2) : '—';
+    const sn = v => v != null ? n(v) : '—';
+    html += `<tr>
+      <td><strong>${WB_LABELS[wb]}</strong></td>
+      <td style="color:var(--str)">${sr ? sr.lots : '—'}</td>
+      <td style="color:var(--str)">${sr ? n(sr.head) : '—'}</td>
+      <td style="color:var(--str);font-weight:700">${sr ? c(sr.avg_cwt,2) : '—'}</td>
+      <td style="color:var(--str)">${sr ? c(sr.avg_hp) : '—'}</td>
+      <td></td>
+      <td style="color:var(--hfr)">${hr ? hr.lots : '—'}</td>
+      <td style="color:var(--hfr)">${hr ? n(hr.head) : '—'}</td>
+      <td style="color:var(--hfr);font-weight:700">${hr ? c(hr.avg_cwt,2) : '—'}</td>
+      <td style="color:var(--hfr)">${hr ? c(hr.avg_hp) : '—'}</td>
+      <td style="color:${spreadColor};font-weight:700">${spread !== '—' ? (parseFloat(spread)>=0?'+':'')+spread : '—'}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+  el.dataset.built = '1';
+}
+
+function buildOverlayChart(field, containerId, yLabel) {
+  const el = document.getElementById(containerId);
+  if (el.dataset.built === '1') return;
+  // find shared weight breaks with data in both
+  const strMap = Object.fromEntries(SALE_DATA.STR.rows.map(r=>[r.wb,r]));
+  const hfrMap = Object.fromEntries(SALE_DATA.HFR.rows.map(r=>[r.wb,r]));
+  // use all breaks present in either, sorted
+  const allWbs = [...new Set([...SALE_DATA.STR.rows.map(r=>r.wb),...SALE_DATA.HFR.rows.map(r=>r.wb)])].sort((a,b)=>a-b);
+  const labels = allWbs.map(wb => WB_LABELS[wb] || wb+'+');
+  const strVals = allWbs.map(wb => strMap[wb] ? strMap[wb][field] : null);
+  const hfrVals = allWbs.map(wb => hfrMap[wb] ? hfrMap[wb][field] : null);
+
+  const W=720,H=320,ml=72,mr=24,mt=24,mb=56;
+  const cw=W-ml-mr,ch=H-mt-mb;
+  const allVals = [...strVals,...hfrVals].filter(v=>v!=null);
+  const yMin = Math.floor(Math.min(...allVals)*0.9/10)*10;
+  const yMax = Math.ceil(Math.max(...allVals)*1.08/10)*10;
+  const xn = allWbs.length;
+  const sx = i => ml + (i/(xn-1))*cw;
+  const sy = v => mt+ch - ((v-yMin)/(yMax-yMin))*ch;
+
+  let svg = `<svg class="price-chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">`;
+  svg += `<rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
+  for(let i=0;i<=5;i++){
+    const v=yMin+(yMax-yMin)*i/5, y=sy(v);
+    svg+=`<line x1="${ml}" y1="${y}" x2="${ml+cw}" y2="${y}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    const lbl = field==='avg_cwt' ? '$'+v.toFixed(0) : '$'+(v/1000).toFixed(1)+'k';
+    svg+=`<text x="${ml-8}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">${lbl}</text>`;
+  }
+
+  function drawSeries(vals, color, dashed) {
+    const pts = allWbs.map((wb,i)=>({i,v:vals[i]})).filter(p=>p.v!=null);
+    if(pts.length<2) return '';
+    let area=`M ${sx(pts[0].i)} ${sy(pts[0].v)}`;
+    for(let j=1;j<pts.length;j++) area+=` C ${sx(pts[j-1].i+0.5)} ${sy(pts[j-1].v)} ${sx(pts[j].i-0.5)} ${sy(pts[j].v)} ${sx(pts[j].i)} ${sy(pts[j].v)}`;
+    area+=` L ${sx(pts[pts.length-1].i)} ${mt+ch} L ${sx(pts[0].i)} ${mt+ch} Z`;
+    let out=`<path d="${area}" fill="${color}" fill-opacity="0.07"/>`;
+    let line=`M ${sx(pts[0].i)} ${sy(pts[0].v)}`;
+    for(let j=1;j<pts.length;j++) line+=` C ${sx(pts[j-1].i+0.5)} ${sy(pts[j-1].v)} ${sx(pts[j].i-0.5)} ${sy(pts[j].v)} ${sx(pts[j].i)} ${sy(pts[j].v)}`;
+    out+=`<path d="${line}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" ${dashed?'stroke-dasharray="6,3"':''}/>` ;
+    pts.forEach(p=>{
+      const lbl = field==='avg_cwt' ? '$'+p.v.toFixed(0) : '$'+(p.v/1000).toFixed(1)+'k';
+      out+=`<circle cx="${sx(p.i)}" cy="${sy(p.v)}" r="4.5" fill="${color}" stroke="var(--surface)" stroke-width="2"/>`;
+    });
+    return out;
+  }
+
+  svg += drawSeries(strVals,'var(--str)',false);
+  svg += drawSeries(hfrVals,'var(--hfr)',true);
+
+  // value labels for STR only (avoid clutter)
+  allWbs.forEach((wb,i)=>{
+    if(strVals[i]==null) return;
+    const lbl = field==='avg_cwt' ? '$'+strVals[i].toFixed(0) : '$'+(strVals[i]/1000).toFixed(1)+'k';
+    const above = i%2===0;
+    svg+=`<text x="${sx(i)}" y="${above?sy(strVals[i])-10:sy(strVals[i])+18}" text-anchor="middle" font-size="10" font-weight="600" fill="var(--str)" font-family="Inter,sans-serif">${lbl}</text>`;
+  });
+
+  labels.forEach((lbl,i)=>{
+    svg+=`<text x="${sx(i)}" y="${mt+ch+22}" text-anchor="middle" font-size="10" fill="var(--fg3)" font-family="Inter,sans-serif">${lbl.replace('-','–')}</text>`;
+  });
+
+  // legend
+  svg+=`<rect x="${ml}" y="${mt-18}" width="12" height="3" rx="1.5" fill="var(--str)"/><text x="${ml+16}" y="${mt-13}" font-size="11" fill="var(--str)" font-family="Inter,sans-serif" font-weight="600">Steers</text>`;
+  svg+=`<rect x="${ml+70}" y="${mt-18}" width="12" height="3" rx="1.5" fill="var(--hfr)" stroke-dasharray="4,2"/><text x="${ml+86}" y="${mt-13}" font-size="11" fill="var(--hfr)" font-family="Inter,sans-serif" font-weight="600">Heifers</text>`;
+
+  svg+=`<text x="${ml+cw/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">Weight Break (lbs)</text>`;
+  svg+=`<text x="12" y="${mt+ch/2}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif" transform="rotate(-90,12,${mt+ch/2})">${yLabel}</text>`;
+  svg+='</svg>';
+  el.innerHTML=svg;
+  el.dataset.built='1';
+}
+
+function buildSpreadChart() {
+  const el = document.getElementById('cmp-spread-chart');
+  if(el.dataset.built==='1') return;
+  const strMap = Object.fromEntries(SALE_DATA.STR.rows.map(r=>[r.wb,r]));
+  const hfrMap = Object.fromEntries(SALE_DATA.HFR.rows.map(r=>[r.wb,r]));
+  const sharedWbs = CMP_BREAKS.filter(wb=>strMap[wb]&&hfrMap[wb]);
+  const spreads = sharedWbs.map(wb=>strMap[wb].avg_cwt - hfrMap[wb].avg_cwt);
+  const labels = sharedWbs.map(wb=>WB_LABELS[wb]);
+
+  const W=680,H=280,ml=64,mr=24,mt=20,mb=52;
+  const cw=W-ml-mr,ch=H-mt-mb;
+  const barW = Math.min(50, cw/sharedWbs.length*0.6);
+  const yMax = Math.ceil(Math.max(...spreads)*1.2/5)*5;
+  const yMin = Math.floor(Math.min(...spreads,0)*1.2/5)*5;
+  const sy = v => mt+ch - ((v-yMin)/(yMax-yMin))*ch;
+  const sx = i => ml + (i+0.5)*(cw/sharedWbs.length);
+
+  let svg=`<svg class="price-chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">`;
+  svg+=`<rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
+
+  for(let i=0;i<=5;i++){
+    const v=yMin+(yMax-yMin)*i/5,y=sy(v);
+    svg+=`<line x1="${ml}" y1="${y}" x2="${ml+cw}" y2="${y}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    svg+=`<text x="${ml-6}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">${v>=0?'+':''}${v.toFixed(1)}</text>`;
+  }
+
+  // zero line
+  const zy=sy(0);
+  svg+=`<line x1="${ml}" y1="${zy}" x2="${ml+cw}" y2="${zy}" stroke="var(--fg3)" stroke-width="1.5"/>`;
+
+  spreads.forEach((sp,i)=>{
+    const x=sx(i)-barW/2;
+    const barH=Math.abs(sy(sp)-zy);
+    const barY=sp>=0?sy(sp):zy;
+    const color=sp>=0?'var(--str)':'var(--hfr)';
+    svg+=`<rect x="${x}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="${color}" fill-opacity="0.85"/>`;
+    const lbl=(sp>=0?'+':'')+sp.toFixed(2);
+    const textY=sp>=0?barY-5:barY+barH+13;
+    svg+=`<text x="${sx(i)}" y="${textY}" text-anchor="middle" font-size="10.5" font-weight="700" fill="${color}" font-family="Inter,sans-serif">${lbl}</text>`;
+    svg+=`<text x="${sx(i)}" y="${mt+ch+20}" text-anchor="middle" font-size="10" fill="var(--fg3)" font-family="Inter,sans-serif">${labels[i].replace('-','–')}</text>`;
+  });
+
+  svg+=`<text x="${ml+cw/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">Weight Break (lbs)</text>`;
+  svg+=`<text x="12" y="${mt+ch/2}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif" transform="rotate(-90,12,${mt+ch/2})">STR premium $/cwt</text>`;
+  svg+='</svg>';
+  el.innerHTML=svg;
+  el.dataset.built='1';
+}
+
+function setCmpView(view,btn) {
+  ['table','cwt','hp','spread'].forEach(v=>{
+    document.getElementById('cmp-'+v+'-view').style.display='none';
+  });
+  if(view==='table'){document.getElementById('cmp-table-view').style.display='';buildCmpTable();}
+  if(view==='cwt'){document.getElementById('cmp-cwt-view').style.display='';buildOverlayChart('avg_cwt','cmp-cwt-chart','$/cwt');}
+  if(view==='hp'){document.getElementById('cmp-hp-view').style.display='';buildOverlayChart('avg_hp','cmp-hp-chart','$/Head');}
+  if(view==='spread'){document.getElementById('cmp-spread-view').style.display='';buildSpreadChart();}
+  btn.closest('.view-toggle').querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Sale Pace data ──
+const PACE_DATA = [
+  {hour:5,  label:'5 AM',  lots:116, head:409,  first:'05:05', last:'05:59'},
+  {hour:6,  label:'6 AM',  lots:124, head:368,  first:'06:00', last:'06:59'},
+  {hour:7,  label:'7 AM',  lots:110, head:484,  first:'07:00', last:'07:59'},
+  {hour:8,  label:'8 AM',  lots:98,  head:932,  first:'08:00', last:'08:59'},
+  {hour:9,  label:'9 AM',  lots:106, head:724,  first:'09:00', last:'09:58'},
+  {hour:10, label:'10 AM', lots:48,  head:1432, first:'10:00', last:'10:59'},
+  {hour:11, label:'11 AM', lots:65,  head:1043, first:'11:00', last:'11:59'},
+  {hour:12, label:'12 PM', lots:54,  head:1579, first:'12:00', last:'12:59'},
+  {hour:13, label:'1 PM',  lots:43,  head:1121, first:'13:00', last:'13:56'},
+  {hour:14, label:'2 PM',  lots:49,  head:1445, first:'14:00', last:'14:59'},
+  {hour:15, label:'3 PM',  lots:57,  head:1074, first:'15:00', last:'15:57'},
+  {hour:16, label:'4 PM',  lots:65,  head:963,  first:'16:00', last:'16:59'},
+  {hour:17, label:'5 PM',  lots:73,  head:907,  first:'17:00', last:'17:59'},
+  {hour:18, label:'6 PM',  lots:108, head:507,  first:'18:00', last:'18:59'},
+  {hour:19, label:'7 PM',  lots:16,  head:47,   first:'19:00', last:'19:08'},
+];
+PACE_DATA.forEach(d => d.lotsize = +(d.head/d.lots).toFixed(1));
+
+let paceView = 'head';
+let paceBuilt = {};
+
+function setPaceView(view, btn) {
+  paceView = view;
+  btn.closest('.view-toggle').querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildPaceChart();
+}
+
+function buildPaceChart() {
+  const el = document.getElementById('pace-chart');
+  const field = paceView;
+  const yLabel = field==='head'?'Head':field==='lots'?'Lots':'Avg Lot Size';
+  const color = '#2a8030';
+  const vals = PACE_DATA.map(d=>d[field]);
+  const labels = PACE_DATA.map(d=>d.label);
+
+  const W=720,H=300,ml=64,mr=24,mt=28,mb=52;
+  const cw=W-ml-mr, ch=H-mt-mb;
+  const yMax = Math.ceil(Math.max(...vals)*1.15/50)*50;
+  const barW = Math.min(44, cw/PACE_DATA.length*0.65);
+  const sx = i => ml + (i+0.5)*(cw/PACE_DATA.length);
+  const sy = v => mt+ch - (v/yMax)*ch;
+
+  let svg=`<svg class="price-chart" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto">`;
+  svg+=`<rect x="0" y="0" width="${W}" height="${H}" fill="transparent"/>`;
+
+  for(let i=0;i<=5;i++){
+    const v=yMax*i/5, y=sy(v);
+    svg+=`<line x1="${ml}" y1="${y}" x2="${ml+cw}" y2="${y}" stroke="var(--border)" stroke-width="1" stroke-dasharray="4,3"/>`;
+    svg+=`<text x="${ml-6}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">${v.toFixed(0)}</text>`;
+  }
+
+  // avg line
+  const avg = vals.slice(0,-1).reduce((a,b)=>a+b,0)/(vals.length-1); // exclude last partial hour
+  const avgY = sy(avg);
+  svg+=`<line x1="${ml}" y1="${avgY}" x2="${ml+cw}" y2="${avgY}" stroke="${color}" stroke-width="1.5" stroke-dasharray="5,3" opacity="0.5"/>`;
+  svg+=`<text x="${ml+cw+2}" y="${avgY+4}" font-size="10" fill="${color}" font-family="Inter,sans-serif" opacity="0.7">avg</text>`;
+
+  PACE_DATA.forEach((d,i)=>{
+    const v = d[field];
+    const x = sx(i)-barW/2;
+    const barH = (v/yMax)*ch;
+    const barY = mt+ch-barH;
+    // highlight big hours
+    const isBig = field==='head' ? v>=1200 : field==='lots' ? v>=110 : v>=20;
+    const fillColor = isBig ? color : color+'99';
+    svg+=`<rect x="${x}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="${fillColor}"/>`;
+    // value label on top
+    const lbl = field==='lotsize' ? v.toFixed(1) : v.toLocaleString();
+    svg+=`<text x="${sx(i)}" y="${barY-4}" text-anchor="middle" font-size="10" font-weight="700" fill="${isBig?color:'var(--fg3)'}" font-family="Inter,sans-serif">${lbl}</text>`;
+    svg+=`<text x="${sx(i)}" y="${mt+ch+18}" text-anchor="middle" font-size="10.5" fill="var(--fg3)" font-family="Inter,sans-serif">${d.label}</text>`;
+  });
+
+  svg+=`<text x="${ml+cw/2}" y="${H-4}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif">Hour of Sale</text>`;
+  svg+=`<text x="12" y="${mt+ch/2}" text-anchor="middle" font-size="11" fill="var(--fg3)" font-family="Inter,sans-serif" transform="rotate(-90,12,${mt+ch/2})">${yLabel}</text>`;
+  svg+='</svg>';
+  el.innerHTML=svg;
+
+  // also build table
+  buildPaceTable();
+}
+
+function buildPaceTable() {
+  const el = document.getElementById('pace-table');
+  let html=`<thead><tr>
+    <th style="text-align:left">Hour</th>
+    <th>Lots</th><th>Head</th><th>Avg Lot Size</th>
+    <th>Head/Min</th><th>Notes</th>
+  </tr></thead><tbody>`;
+  PACE_DATA.forEach(d=>{
+    const hpm = (d.head/60).toFixed(1);
+    let note = '';
+    if(d.head>=1400) note='<span style="color:#1a7a4a;font-weight:600">🔥 Peak volume</span>';
+    else if(d.lots>=115) note='<span style="color:#8a6300;font-weight:600">⚡ Fast singles</span>';
+    else if(d.lotsize>=25) note='<span style="color:var(--str);font-weight:600">🐄 Big commercial runs</span>';
+    html+=`<tr>
+      <td style="font-weight:700">${d.label}</td>
+      <td>${d.lots}</td>
+      <td>${d.head.toLocaleString()}</td>
+      <td>${d.lotsize}</td>
+      <td>${hpm}</td>
+      <td>${note}</td>
+    </tr>`;
+  });
+  const totLots=PACE_DATA.reduce((s,d)=>s+d.lots,0);
+  const totHead=PACE_DATA.reduce((s,d)=>s+d.head,0);
+  html+=`<tr class="total-row"><td>TOTALS</td><td>${totLots}</td><td>${totHead.toLocaleString()}</td><td>${(totHead/totLots).toFixed(1)}</td><td>${(totHead/720).toFixed(1)}/min</td><td></td></tr>`;
+  html+='</tbody>';
+  el.innerHTML=html;
+}
+
+// ── Init ──
+buildTable('STR');
+buildTable('HFR');
+buildTable('FBUL');
+updateBuyPriceOptions();
+
+// pre-select STR 600-699 (biggest lot)
+const strWbSel = document.getElementById('c-wb');
+// default stays as first option (STR); update manually to 600 wb if present
+Array.from(strWbSel.options).forEach((o,i) => {
+  if (o.value === '600') strWbSel.selectedIndex = i;
+});
+autoFillBuyPrice();
+</script>
+</body>
+</html>
