@@ -29,6 +29,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .tool-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.4)}
 .tool-btn.green:hover{border-color:var(--green)}
 .tool-btn.gold:hover{border-color:var(--gold)}
+.tool-btn.red::before{background:linear-gradient(135deg,#5c101022,#c82a1a11)}
+.tool-btn.red:hover{border-color:#c8421a}
+.tool-btn.red .btn-title{color:#e06040}
 .tool-btn:hover::before{opacity:1}
 .btn-icon{font-size:32px;line-height:1;flex-shrink:0}
 .btn-text{flex:1;min-width:0}
@@ -62,6 +65,14 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="btn-text">
         <div class="btn-title">Breakeven Sheet</div>
         <div class="btn-desc">Enter buyer cuts, feed cost &amp; gain assumptions to calculate your breakeven on any purchase</div>
+      </div>
+      <span class="btn-arrow">&#8250;</span>
+    </a>
+    <a class="tool-btn red" href="invoice-checker.html">
+      <span class="btn-icon">🧾</span>
+      <div class="btn-text">
+        <div class="btn-title">Invoice Checker</div>
+        <div class="btn-desc">Enter cut rows from your auction invoice &mdash; verify the math, spot errors, save records</div>
       </div>
       <span class="btn-arrow">&#8250;</span>
     </a>

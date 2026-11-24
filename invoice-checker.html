@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Invoice Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f2f3ee;--surface:#fff;--ink:#1c231d;--muted:#5d665e;--line:#d5d9ce;
+  --accent:#2f5d3a;--accent-ink:#fff;--straw:#9a6b0e;--input:#fbf6e8;--input-line:#e2d6b4;
+  --good:#23704a;--good-bg:#eaf5ee;--bad:#b0261c;--bad-bg:#fdf0ee;--warn:#94600a;--warn-bg:#fdf5e6;
+  --band:#1f3a27;--band-ink:#eef2ea;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111a12;--surface:#1a271c;--ink:#e8ede6;--muted:#8a9e8b;--line:#2a3d2c;
+  --accent:#4fa866;--accent-ink:#0e1a10;--straw:#c8921a;--input:#1e2e20;--input-line:#2a4030;
+  --good:#4fa866;--good-bg:#162019;--bad:#e05a4a;--bad-bg:#2a1210;--warn:#c8921a;--warn-bg:#1e1a10;
+  --band:#0e1a10;--band-ink:#9aab98;color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#111a12;--surface:#1a271c;--ink:#e8ede6;--muted:#8a9e8b;--line:#2a3d2c;
+  --accent:#4fa866;--accent-ink:#0e1a10;--straw:#c8921a;--input:#1e2e20;--input-line:#2a4030;
+  --good:#4fa866;--good-bg:#162019;--bad:#e05a4a;--bad-bg:#2a1210;--warn:#c8921a;--warn-bg:#1e1a10;
+  --band:#0e1a10;--band-ink:#9aab98;color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--body);background:var(--bg);color:var(--ink);min-height:100vh;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:24px}
+.page{max-width:960px;margin:0 auto}
+
+/* Header */
+.hdr{background:var(--band);color:var(--band-ink);border-radius:12px 12px 0 0;
+  padding:16px 24px;display:flex;align-items:center;gap:16px}
+.hdr-logo{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.hdr-sub{font-size:13px;opacity:.7;letter-spacing:.05em;text-transform:uppercase}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.theme-btn{background:none;border:1px solid #ffffff30;color:var(--band-ink);border-radius:6px;
+  padding:4px 10px;font-size:12px;cursor:pointer;font-family:var(--body)}
+.theme-btn:hover{background:#ffffff15}
+
+/* Main card */
+.card{background:var(--surface);border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;padding:28px 28px 32px}
+
+/* Invoice meta */
+.meta-row{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.meta-group{display:flex;flex-direction:column;gap:4px}
+.meta-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.meta-input{font-family:var(--mono);font-size:14px;background:var(--input);border:1px solid var(--input-line);
+  border-radius:5px;padding:5px 9px;color:var(--ink);width:160px}
+.meta-input.wide{width:220px}
+.meta-input.sm{width:100px}
+
+/* Section title */
+.section-title{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--line)}
+
+/* Cut table */
+.cut-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px}
+.cut-table th{font-family:var(--display);font-size:12px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);border-bottom:2px solid var(--line);
+  padding:6px 8px;text-align:right;white-space:nowrap}
+.cut-table th:first-child,.cut-table th:nth-child(2){text-align:left}
+.cut-table td{padding:4px 8px;text-align:right;border-bottom:1px solid var(--line);vertical-align:middle}
+.cut-table td:first-child,.cut-table td:nth-child(2){text-align:left}
+.cut-table td input{font-family:var(--mono);font-size:13px;background:var(--input);
+  border:1px solid var(--input-line);border-radius:4px;padding:3px 6px;
+  color:var(--ink);width:100%;text-align:right;min-width:70px}
+.cut-table td input.cut-id{font-size:12px;min-width:90px;text-align:left}
+.cut-table td input.hd{min-width:50px}
+.cut-table .calc-cell{font-family:var(--mono);font-size:13px;padding:4px 8px}
+.cut-table .status-cell{font-size:18px;padding:4px 6px;text-align:center}
+.cut-table tr.cut-row:last-child td{border-bottom:none}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 4px;
+  border-radius:3px;line-height:1}
+.del-btn:hover{color:var(--bad);background:var(--bad-bg)}
+
+/* Verify cell coloring */
+.ok{color:var(--good)}
+.off{color:var(--bad);font-weight:600}
+.close{color:var(--warn)}
+
+/* Add cut button */
+.add-btn{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;background:none;border:1px dashed var(--line);border-radius:6px;
+  color:var(--accent);cursor:pointer;padding:7px 16px;width:100%;margin-top:8px;transition:all .15s}
+.add-btn:hover{background:var(--good-bg);border-color:var(--accent)}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:20px 0}
+.sum-tile{background:var(--input);border:1px solid var(--input-line);border-radius:8px;padding:14px 16px}
+.sum-tile.highlight{background:var(--band);color:var(--band-ink);border-color:var(--band)}
+.sum-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+.sum-tile.highlight .sum-label{color:var(--band-ink);opacity:.7}
+.sum-value{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--ink)}
+.sum-tile.highlight .sum-value{color:var(--band-ink);font-size:22px}
+.sum-check{font-size:12px;margin-top:4px}
+
+/* Haul/charges section */
+.charge-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.charge-row label{font-size:13px;color:var(--muted);min-width:120px}
+.charge-input{font-family:var(--mono);font-size:14px;background:var(--input);
+  border:1px solid var(--input-line);border-radius:5px;padding:5px 9px;color:var(--ink);width:140px;text-align:right}
+.charge-desc{font-family:var(--mono);font-size:13px;background:var(--input);
+  border:1px solid var(--input-line);border-radius:5px;padding:5px 9px;color:var(--ink);width:220px}
+
+/* Verify banner */
+.verify-banner{border-radius:8px;padding:14px 18px;margin-top:20px;font-size:15px;display:flex;align-items:center;gap:12px}
+.verify-banner.match{background:var(--good-bg);border:1px solid var(--good);color:var(--good)}
+.verify-banner.mismatch{background:var(--bad-bg);border:1px solid var(--bad);color:var(--bad)}
+.verify-banner.pending{background:var(--warn-bg);border:1px solid var(--warn);color:var(--warn)}
+.banner-icon{font-size:22px}
+.banner-text strong{display:block;font-size:16px;margin-bottom:2px}
+.banner-text span{font-size:13px;opacity:.85}
+
+/* Action bar */
+.action-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.btn{font-family:var(--display);font-size:14px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;border:none;border-radius:7px;padding:9px 20px;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:hover{filter:brightness(1.1)}
+.btn-secondary{background:var(--input);border:1px solid var(--input-line);color:var(--ink)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Saved invoices */
+.saved-list{margin-top:28px}
+.saved-item{background:var(--input);border:1px solid var(--input-line);border-radius:8px;
+  padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s}
+.saved-item:hover{border-color:var(--accent)}
+.saved-date{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.saved-acct{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:.04em}
+.saved-total{font-family:var(--mono);font-size:15px;margin-left:auto}
+.saved-status{font-size:16px}
+
+@media(max-width:600px){
+  .card{padding:16px 12px 24px}
+  .cut-table{font-size:11px}
+  .cut-table td input{min-width:55px;font-size:11px}
+  .summary-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hdr">
+    <div>
+      <div class="hdr-logo">🐄 Invoice Checker</div>
+      <div class="hdr-sub">Joplin Regional Stockyards · Math Verification</div>
+    </div>
+    <div class="hdr-right">
+      <button class="theme-btn" onclick="toggleTheme()">🌙 Dark</button>
+      <button class="btn btn-secondary" style="font-size:12px;padding:5px 12px" onclick="window.location.href='index.html'">← Home</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <!-- Invoice Meta -->
+    <div class="section-title">Invoice Details</div>
+    <div class="meta-row">
+      <div class="meta-group">
+        <span class="meta-label">Acct #</span>
+        <input class="meta-input sm" id="acct" placeholder="77397" oninput="recalc()">
+      </div>
+      <div class="meta-group">
+        <span class="meta-label">Buyer / Farm Name</span>
+        <input class="meta-input wide" id="buyer" placeholder="WAGON WHEEL FARMS INC" oninput="recalc()">
+      </div>
+      <div class="meta-group">
+        <span class="meta-label">Sale Date</span>
+        <input class="meta-input sm" id="saledate" type="date" oninput="recalc()">
+      </div>
+      <div class="meta-group">
+        <span class="meta-label">Invoice #</span>
+        <input class="meta-input sm" id="invoicenum" placeholder="7219" oninput="recalc()">
+      </div>
+      <div class="meta-group">
+        <span class="meta-label">Page</span>
+        <input class="meta-input sm" id="pagenum" placeholder="Sum-1" oninput="recalc()">
+      </div>
+    </div>
+
+    <!-- Cut Rows -->
+    <div class="section-title">Cut Breakdown</div>
+    <div style="overflow-x:auto">
+      <table class="cut-table">
+        <thead>
+          <tr>
+            <th>BuyerCut</th>
+            <th style="text-align:right">Tot Hd</th>
+            <th>Avg Wt</th>
+            <th>Tot Wt</th>
+            <th>Avg P/cwt</th>
+            <th>Avg P/Hd</th>
+            <th>Byr Com</th>
+            <th>Trk</th>
+            <th>Chg</th>
+            <th>Invoice Total</th>
+            <th>Calc Total</th>
+            <th>Diff</th>
+            <th>✓</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="cutBody"></tbody>
+      </table>
+    </div>
+    <button class="add-btn" onclick="addCut()">+ Add Cut Row</button>
+
+    <!-- Extra Charges (Haul, etc.) -->
+    <div class="section-title" style="margin-top:24px">Extra Charges</div>
+    <div id="chargeRows"></div>
+    <button class="add-btn" onclick="addCharge()">+ Add Charge (Haul, Yardage, etc.)</button>
+
+    <!-- Summary -->
+    <div class="section-title" style="margin-top:24px">Invoice Summary</div>
+    <div class="summary-grid" id="summaryGrid">
+      <div class="sum-tile"><div class="sum-label">Total Head</div><div class="sum-value" id="s-hd">—</div></div>
+      <div class="sum-tile"><div class="sum-label">Total Weight</div><div class="sum-value" id="s-wt">—</div></div>
+      <div class="sum-tile"><div class="sum-label">Avg $/cwt</div><div class="sum-value" id="s-cwt">—</div></div>
+      <div class="sum-tile"><div class="sum-label">Total Purchases</div><div class="sum-value" id="s-purch">—</div></div>
+      <div class="sum-tile"><div class="sum-label">Total Extra Charges</div><div class="sum-value" id="s-chg">—</div></div>
+      <div class="sum-tile highlight"><div class="sum-label">Total Amount Due</div><div class="sum-value" id="s-due">—</div></div>
+    </div>
+
+    <!-- Invoice Total Due field -->
+    <div class="charge-row" style="margin-top:8px">
+      <label>Invoice "Total Amount Due"</label>
+      <input class="charge-input" id="invoiceDue" placeholder="169664.42" oninput="recalc()">
+    </div>
+
+    <!-- Verify Banner -->
+    <div class="verify-banner pending" id="verifyBanner">
+      <span class="banner-icon">📋</span>
+      <div class="banner-text">
+        <strong>Enter invoice data above</strong>
+        <span>Fill in cut rows and the Total Amount Due to verify the math</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-bar">
+      <button class="btn btn-primary" onclick="saveInvoice()">💾 Save Invoice</button>
+      <button class="btn btn-secondary" onclick="clearAll()">🗑 Clear</button>
+      <button class="btn btn-secondary" onclick="loadDemo()">📄 Load Demo (Nov 23 Invoice)</button>
+    </div>
+
+    <!-- Saved Invoices -->
+    <div class="saved-list">
+      <div class="section-title" style="margin-top:8px">Saved Invoices</div>
+      <div id="savedList"><p style="color:var(--muted);font-size:13px">No saved invoices yet.</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+let cutRows = [];
+let chargeRows = [];
+let cutId = 0;
+let chargeId = 0;
+
+// ── Init ───────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('saledate').value = today;
+  addCut();
+  renderSaved();
+});
+
+// ── Cut rows ──────────────────────────────────────────────────────────
+function addCut(data) {
+  const id = ++cutId;
+  cutRows.push(id);
+  const tbody = document.getElementById('cutBody');
+  const tr = document.createElement('tr');
+  tr.className = 'cut-row';
+  tr.id = 'cut-' + id;
+  tr.innerHTML = `
+    <td><input class="cut-id" id="cid-${id}" placeholder="JWEB-51X" oninput="recalc()"></td>
+    <td><input class="hd" id="hd-${id}" type="number" min="0" placeholder="85" oninput="recalc()"></td>
+    <td class="calc-cell" id="avgwt-${id}">—</td>
+    <td><input id="tw-${id}" type="number" min="0" placeholder="48485" oninput="recalc()"></td>
+    <td><input id="cwt-${id}" type="number" min="0" step="0.01" placeholder="347.35" oninput="recalc()"></td>
+    <td class="calc-cell" id="avgph-${id}">—</td>
+    <td><input id="com-${id}" type="number" min="0" step="0.01" placeholder="0.00" oninput="recalc()"></td>
+    <td><input id="trk-${id}" type="number" min="0" step="0.01" placeholder="0.00" oninput="recalc()"></td>
+    <td><input id="xchg-${id}" type="number" min="0" step="0.01" placeholder="0.00" oninput="recalc()"></td>
+    <td><input id="itot-${id}" type="number" min="0" step="0.01" placeholder="168414.42" oninput="recalc()"></td>
+    <td class="calc-cell" id="calc-${id}">—</td>
+    <td class="calc-cell" id="diff-${id}">—</td>
+    <td class="status-cell" id="stat-${id}">—</td>
+    <td><button class="del-btn" onclick="delCut(${id})" title="Remove row">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  if (data) fillCut(id, data);
+}
+
+function fillCut(id, d) {
+  if (d.cut) document.getElementById('cid-'+id).value = d.cut;
+  if (d.hd)  document.getElementById('hd-'+id).value = d.hd;
+  if (d.tw)  document.getElementById('tw-'+id).value = d.tw;
+  if (d.cwt) document.getElementById('cwt-'+id).value = d.cwt;
+  if (d.com !== undefined) document.getElementById('com-'+id).value = d.com;
+  if (d.trk !== undefined) document.getElementById('trk-'+id).value = d.trk;
+  if (d.xchg !== undefined) document.getElementById('xchg-'+id).value = d.xchg;
+  if (d.itot) document.getElementById('itot-'+id).value = d.itot;
+  recalc();
+}
+
+function delCut(id) {
+  document.getElementById('cut-'+id)?.remove();
+  cutRows = cutRows.filter(x => x !== id);
+  recalc();
+}
+
+// ── Charge rows ───────────────────────────────────────────────────────
+function addCharge(data) {
+  const id = ++chargeId;
+  chargeRows.push(id);
+  const container = document.getElementById('chargeRows');
+  const div = document.createElement('div');
+  div.className = 'charge-row';
+  div.id = 'charge-' + id;
+  div.innerHTML = `
+    <label><input class="charge-desc" id="cdesc-${id}" placeholder="HAUL — MM Livestock LLC" oninput="recalc()"></label>
+    <input class="charge-input" id="camt-${id}" type="number" min="0" step="0.01" placeholder="1250.00" oninput="recalc()">
+    <button class="del-btn" onclick="delCharge(${id})">✕</button>
+  `;
+  container.appendChild(div);
+  if (data) {
+    if (data.desc) document.getElementById('cdesc-'+id).value = data.desc;
+    if (data.amt)  document.getElementById('camt-'+id).value = data.amt;
+  }
+  recalc();
+}
+
+function delCharge(id) {
+  document.getElementById('charge-'+id)?.remove();
+  chargeRows = chargeRows.filter(x => x !== id);
+  recalc();
+}
+
+// ── Recalculate ───────────────────────────────────────────────────────
+function n(id) { return parseFloat(document.getElementById(id)?.value) || 0; }
+function fmt(v, dec=2) { return v.toLocaleString('en-US', {minimumFractionDigits:dec, maximumFractionDigits:dec}); }
+function fmtDol(v) { return '$' + fmt(v); }
+
+function recalc() {
+  let totalHd = 0, totalWt = 0, totalPurchases = 0;
+
+  for (const id of cutRows) {
+    const hd  = n('hd-'+id);
+    const tw  = n('tw-'+id);
+    const cwt = n('cwt-'+id);
+    const com = n('com-'+id);
+    const trk = n('trk-'+id);
+    const xchg = n('xchg-'+id);
+    const itot = n('itot-'+id);
+
+    // Calculated values
+    const avgWt = hd > 0 ? tw / hd : 0;
+    const livestock = tw / 100 * cwt;
+    const calcTotal = livestock + com + trk + xchg;
+    const avgPh = hd > 0 ? calcTotal / hd : 0;
+    const diff = itot > 0 ? calcTotal - itot : 0;
+    const absDiff = Math.abs(diff);
+
+    document.getElementById('avgwt-'+id).textContent = hd && tw ? fmt(avgWt, 0) : '—';
+    document.getElementById('avgph-'+id).textContent = hd && cwt ? fmtDol(avgPh) : '—';
+    document.getElementById('calc-'+id).textContent = cwt ? fmtDol(calcTotal) : '—';
+
+    if (itot > 0 && cwt > 0) {
+      const diffEl = document.getElementById('diff-'+id);
+      const statEl = document.getElementById('stat-'+id);
+      diffEl.textContent = (diff >= 0 ? '+' : '') + fmtDol(diff);
+      if (absDiff < 0.02) {
+        diffEl.className = 'calc-cell ok'; statEl.textContent = '✅';
+      } else if (absDiff <= 10) {
+        diffEl.className = 'calc-cell close'; statEl.textContent = '⚠️';
+      } else {
+        diffEl.className = 'calc-cell off'; statEl.textContent = '❌';
+      }
+    } else {
+      document.getElementById('diff-'+id).textContent = '—';
+      document.getElementById('stat-'+id).textContent = '—';
+    }
+
+    totalHd += hd;
+    totalWt += tw;
+    totalPurchases += calcTotal;
+  }
+
+  // Extra charges
+  let totalCharges = 0;
+  for (const id of chargeRows) {
+    totalCharges += n('camt-'+id);
+  }
+  const totalDue = totalPurchases + totalCharges;
+  const avgCwt = totalWt > 0 ? totalPurchases / totalWt * 100 : 0;
+
+  document.getElementById('s-hd').textContent   = totalHd  ? totalHd.toLocaleString() : '—';
+  document.getElementById('s-wt').textContent   = totalWt  ? totalWt.toLocaleString() + ' lbs' : '—';
+  document.getElementById('s-cwt').textContent  = avgCwt   ? fmtDol(avgCwt) : '—';
+  document.getElementById('s-purch').textContent = totalPurchases ? fmtDol(totalPurchases) : '—';
+  document.getElementById('s-chg').textContent  = fmtDol(totalCharges);
+  document.getElementById('s-due').textContent  = totalDue  ? fmtDol(totalDue) : '—';
+
+  // Compare with invoice "Total Amount Due"
+  const invoiceDue = n('invoiceDue');
+  const banner = document.getElementById('verifyBanner');
+  if (!invoiceDue || !totalDue) {
+    banner.className = 'verify-banner pending';
+    banner.innerHTML = `<span class="banner-icon">📋</span><div class="banner-text"><strong>Enter invoice data above</strong><span>Fill in cut rows and the Total Amount Due to verify the math</span></div>`;
+  } else {
+    const finalDiff = totalDue - invoiceDue;
+    const absFinal = Math.abs(finalDiff);
+    if (absFinal < 1) {
+      banner.className = 'verify-banner match';
+      banner.innerHTML = `<span class="banner-icon">✅</span><div class="banner-text"><strong>Invoice Verified — Math Checks Out</strong><span>Calculated ${fmtDol(totalDue)} matches invoice ${fmtDol(invoiceDue)} (diff: ${fmtDol(finalDiff)})</span></div>`;
+    } else if (absFinal <= 25) {
+      banner.className = 'verify-banner pending';
+      banner.innerHTML = `<span class="banner-icon">⚠️</span><div class="banner-text"><strong>Minor Rounding Difference — Likely OK</strong><span>Calculated ${fmtDol(totalDue)} vs invoice ${fmtDol(invoiceDue)} · Difference: ${fmtDol(Math.abs(finalDiff))} (rounding on cwt price)</span></div>`;
+    } else {
+      banner.className = 'verify-banner mismatch';
+      banner.innerHTML = `<span class="banner-icon">❌</span><div class="banner-text"><strong>Mismatch — Check Your Numbers</strong><span>Calculated ${fmtDol(totalDue)} vs invoice ${fmtDol(invoiceDue)} · Difference: ${fmtDol(Math.abs(finalDiff))} — review cut rows</span></div>`;
+    }
+  }
+}
+
+// ── Save / Load ───────────────────────────────────────────────────────
+function getFormData() {
+  const cuts = cutRows.map(id => ({
+    cut:  document.getElementById('cid-'+id)?.value || '',
+    hd:   document.getElementById('hd-'+id)?.value || '',
+    tw:   document.getElementById('tw-'+id)?.value || '',
+    cwt:  document.getElementById('cwt-'+id)?.value || '',
+    com:  document.getElementById('com-'+id)?.value || '0',
+    trk:  document.getElementById('trk-'+id)?.value || '0',
+    xchg: document.getElementById('xchg-'+id)?.value || '0',
+    itot: document.getElementById('itot-'+id)?.value || '',
+  }));
+  const charges = chargeRows.map(id => ({
+    desc: document.getElementById('cdesc-'+id)?.value || '',
+    amt:  document.getElementById('camt-'+id)?.value || '0',
+  }));
+  return {
+    acct: document.getElementById('acct').value,
+    buyer: document.getElementById('buyer').value,
+    saledate: document.getElementById('saledate').value,
+    invoicenum: document.getElementById('invoicenum').value,
+    pagenum: document.getElementById('pagenum').value,
+    invoiceDue: document.getElementById('invoiceDue').value,
+    cuts, charges,
+    savedAt: new Date().toISOString(),
+  };
+}
+
+function saveInvoice() {
+  const data = getFormData();
+  if (!data.cuts.length && !data.buyer) { alert('Enter invoice data first.'); return; }
+  try {
+    const list = JSON.parse(localStorage.getItem('jrs-invoices') || '[]');
+    // Replace if same invoice#
+    const idx = list.findIndex(x => x.invoicenum && x.invoicenum === data.invoicenum);
+    if (idx >= 0) list[idx] = data; else list.unshift(data);
+    localStorage.setItem('jrs-invoices', JSON.stringify(list.slice(0, 50)));
+    renderSaved();
+    alert('Invoice saved!');
+  } catch(e) { alert('Could not save: ' + e.message); }
+}
+
+function renderSaved() {
+  const container = document.getElementById('savedList');
+  try {
+    const list = JSON.parse(localStorage.getItem('jrs-invoices') || '[]');
+    if (!list.length) { container.innerHTML = '<p style="color:var(--muted);font-size:13px">No saved invoices yet.</p>'; return; }
+    container.innerHTML = list.map((inv, i) => {
+      const due = parseFloat(inv.invoiceDue) || 0;
+      const date = inv.saledate ? new Date(inv.saledate + 'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—';
+      return `<div class="saved-item" onclick="loadInvoice(${i})">
+        <span class="saved-status">📄</span>
+        <div>
+          <div class="saved-acct">${inv.buyer || inv.acct || 'Invoice'} #${inv.invoicenum||'—'}</div>
+          <div class="saved-date">${date} · Acct ${inv.acct||'—'} · ${inv.cuts?.length||0} cut(s)</div>
+        </div>
+        <span class="saved-total">${due ? '$'+due.toLocaleString('en-US',{minimumFractionDigits:2}) : '—'}</span>
+        <button class="del-btn" onclick="event.stopPropagation();deleteSaved(${i})">✕</button>
+      </div>`;
+    }).join('');
+  } catch(e) { container.innerHTML = '<p style="color:var(--muted);font-size:13px">Error loading saved invoices.</p>'; }
+}
+
+function loadInvoice(idx) {
+  try {
+    const list = JSON.parse(localStorage.getItem('jrs-invoices') || '[]');
+    const inv = list[idx]; if (!inv) return;
+    clearAll(true);
+    document.getElementById('acct').value = inv.acct||'';
+    document.getElementById('buyer').value = inv.buyer||'';
+    document.getElementById('saledate').value = inv.saledate||'';
+    document.getElementById('invoicenum').value = inv.invoicenum||'';
+    document.getElementById('pagenum').value = inv.pagenum||'';
+    document.getElementById('invoiceDue').value = inv.invoiceDue||'';
+    (inv.cuts||[]).forEach(c => addCut(c));
+    (inv.charges||[]).forEach(c => addCharge(c));
+    recalc();
+  } catch(e) { alert('Could not load: ' + e.message); }
+}
+
+function deleteSaved(idx) {
+  if (!confirm('Delete this saved invoice?')) return;
+  try {
+    const list = JSON.parse(localStorage.getItem('jrs-invoices') || '[]');
+    list.splice(idx, 1);
+    localStorage.setItem('jrs-invoices', JSON.stringify(list));
+    renderSaved();
+  } catch(e) {}
+}
+
+function clearAll(silent) {
+  document.getElementById('cutBody').innerHTML = '';
+  document.getElementById('chargeRows').innerHTML = '';
+  cutRows = []; chargeRows = []; cutId = 0; chargeId = 0;
+  if (!silent) {
+    ['acct','buyer','invoicenum','pagenum','invoiceDue'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('saledate').value = new Date().toISOString().split('T')[0];
+    addCut();
+    recalc();
+  }
+}
+
+function loadDemo() {
+  clearAll(true);
+  document.getElementById('acct').value = '77397';
+  document.getElementById('buyer').value = 'WAGON WHEEL FARMS INC';
+  document.getElementById('saledate').value = '2026-11-23';
+  document.getElementById('invoicenum').value = '7219';
+  document.getElementById('pagenum').value = 'Sum-1';
+  document.getElementById('invoiceDue').value = '169664.42';
+  addCut({cut:'JWEB-51X', hd:'85', tw:'48485', cwt:'347.35', com:'242.42', trk:'0', xchg:'0', itot:'168414.42'});
+  addCharge({desc:'HAUL — MM LIVESTOCK LLC', amt:'1250.00'});
+  recalc();
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const root = document.documentElement;
+  const btn = document.querySelector('.theme-btn');
+  if (root.dataset.theme === 'dark') {
+    delete root.dataset.theme; btn.textContent = '🌙 Dark';
+    try { localStorage.setItem('jrs-theme', 'light'); } catch(e) {}
+  } else {
+    root.dataset.theme = 'dark'; btn.textContent = '☀️ Light';
+    try { localStorage.setItem('jrs-theme', 'dark'); } catch(e) {}
+  }
+}
+try {
+  const t = localStorage.getItem('jrs-theme');
+  if (t === 'dark') { document.documentElement.dataset.theme = 'dark'; document.querySelector('.theme-btn').textContent = '☀️ Light'; }
+} catch(e) {}
+</script>
+</body>
+</html>
