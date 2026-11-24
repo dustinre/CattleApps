@@ -191,14 +191,18 @@ tfoot td:first-child{font-family:var(--display);letter-spacing:.06em;text-transf
 
 <header class="band">
   <div class="wrap">
-    <div>
-      <h1>Cattle Breakeven Sheet</h1>
-      <p class="sub">Load a buyer's summary, set an end weight per cut, and get days on feed, out date and breakeven.</p>
+    <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <h1>Cattle Breakeven Sheet</h1>
+        <p class="sub">Load a buyer's summary, set an end weight per cut, and get days on feed, out date and breakeven.</p>
+      </div>
     </div>
     <div class="hdr-fields">
       <label for="sheetName">Buyer / sheet name<input id="sheetName" type="text" value="" placeholder="Fills in from the sheet"></label>
       <label for="buyDate">Purchase date<input id="buyDate" type="date" value="2026-11-03"></label>
       <button class="simple-btn" id="openSimple" type="button">Simple breakeven</button>
+      <button class="simple-btn" id="clearAll" type="button" onclick="clearAllData()" style="background:rgba(180,40,30,.25);border-color:rgba(255,120,100,.4)">🗑 Clear All</button>
+      <a href="index.html" class="simple-btn" style="text-decoration:none;display:inline-flex;align-items:center">&#8249; Home</a>
     </div>
   </div>
 </header>
@@ -920,6 +924,16 @@ function restore(snap){
 }
 let draftTimer;
 function saveDraft(){ clearTimeout(draftTimer); draftTimer = setTimeout(() => store.set(DRAFT_KEY, snapshot()), 400); }
+function clearAllData(){
+  if(!confirm("Clear all cuts, settings and saved sheets? This cannot be undone.")) return;
+  try{ localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(SAVED_KEY); }catch(e){}
+  rows = []; uid = 0;
+  /* Reset all settings inputs to defaults */
+  ["feed","days","buyComm","sellComm","shrink","yardage"].forEach(id => { if($(id)) $(id).value = $(id).defaultValue || ""; });
+  $("sheetName").value = ""; $("buyDate").value = new Date().toISOString().split("T")[0];
+  renderBody(); renderSaved();
+  if(typeof simpleUpdate === "function"){ sm = simpleDefaults(); simpleFill(); simpleUpdate(); }
+}
 function renderSaved(){
   const saved = store.get(SAVED_KEY) || {};
   const names = Object.keys(saved).sort((a,b) => saved[b].savedAt - saved[a].savedAt);
